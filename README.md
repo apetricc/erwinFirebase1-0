@@ -1,4 +1,6 @@
-# Firebase Web Codelab - Start code
+# Add wifiMap code to Firebase Web Codelab - Start code
+
+Adding my own code for wifiMap to this:
 
 This folder contains the starting code for the [Firebase: Build a Real Time Web Chat App Codelab](https://codelabs.developers.google.com/codelabs/firebase-web/).
 
