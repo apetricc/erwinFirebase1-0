@@ -53,7 +53,7 @@
 <div class="demo-layout mdl-layout mdl-js-layout mdl-layout--fixed-header">
 
   <!-- Header section containing logo -->
-  <header class="mdl-layout__header mdl-color-text--white mdl-color--light-blue-700">
+  <header class="mdl-layout__header mdl-color-text--white mdl-color--light-green-700">
     <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet mdl-grid">
       <div class="mdl-layout__header-row mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet mdl-cell--12-col-desktop">
         <h3> Erwin Wifi Map 1-0</h3>
@@ -74,7 +74,91 @@
   <main class="mdl-layout__content mdl-color--grey-100">
 
 
-
+<!-- Code from previous erwin map page -->
+<div id="map"></div>
+<script>
+        
+//        var asheville = {lat: 35.6, lng: -82.55};
+//        var erwin = {lat:35.6, lng:-82.63};
+//       
+        
+        //global array var for all the markers    
+       var markers = []; 
+        //************************   ************************  ************************ 
+        //************************************************************************************************    
+        var map;
+        function initMap() {
+            //constructor creates a new map - only center and zoom required.
+          map = new google.maps.Map(document.getElementById('map'), {
+          center: {lat: 40.741359, lng: -73.9980244},
+          zoom: 11
+        });
+        
+        //now we'll use an array, but in the future it will be from a database, although we haven't learned that yet
+        var locations = [
+                {title: 'Park Ave', location: {lat:40.7713024, lng:-73.9632393}},
+                {title: 'Chealsea Loft', location: {lat:40.7444883, lng:-73.9949465}},
+                {title: 'Union Square open Flat', location: {lat:40.7347062, lng:-73.9895759}},
+                {title: 'East Village Hipster Pad', location: {lat:40.7281777, lng:-73.984377}},
+                {title: 'Tribeca Arsty Bach Pad', location: {lat:40.7195264, lng:-74.0089934}},
+                {title: 'Chinatown Homey Space', location: {lat:40.7180628, lng:-73.9961237}},
+        ];
+          //there's only ever ONE large info window, even though there are lots of markers
+          var largeInfoWindow = new google.maps.InfoWindow();
+            var bounds = new google.maps.LatLngBounds();
+            
+            //using the locations array to create array of markers on init
+            for (var i = 0; i < locations.length; i++) {
+                //get position from the locations array
+                var position = locations[i].location;
+                var title = locations[i].title;
+                
+                //create a marker per location, and put into markers array
+                var marker = new google.maps.Marker({
+                    map: map,
+                    position: position,
+                    title: title,
+                    animation: google.maps.Animation.DROP,
+                    id: i
+                });
+                
+                //push the marker to our array of markers
+                markers.push(marker);
+                //create event listener for each marker
+                marker.addListener('click', function() {
+                    populateInfoWindow(this, largeInfoWindow);
+                });
+                bounds.extend(markers[i].position);
+                
+            }//for length of locations array
+            //extend the boundaries of the map for each marker
+            map.fitBounds(bounds);
+            
+            //function to populate infowindow when marker is clicked--we're only
+            //allowing one infowindow that will open when that marker is clicked
+            //and populate based on that markers position
+            function populateInfoWindow(marker, infowindow) {
+                //check to make sure the infowindow is not already opened on
+                //this marker
+                if (infowindow.marker != marker) {
+                    infowindow.marker = marker;
+                    infowindow.setContent('<div>' + marker.title + '</div>');
+                    infowindow.open(map, marker);
+                    //make sure the marker property is cleared if the infowindow 
+                    //is closed
+                    infowindow.addListener('closeclick', function() {
+                        infowindow.setMarker = null;
+                    });
+                }
+                
+            } 
+      }//initMap()
+    </script>
+        
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA_LU1gytLu1Z-VXx4bsvXF0l6mhrsVzXE&callback=initMap">
+    </script>
+<!-- end map code -->
 
 
 

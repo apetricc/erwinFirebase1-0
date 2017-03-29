@@ -1,0 +1,8 @@
+API key for tutorial project: 
+AIzaSyA_LU1gytLu1Z-VXx4bsvXF0l6mhrsVzXE
+
+2017-02-22T16:06:02.072986Z 1 [Note] A temporary password is generated for root@localhost: fjAyGkaAf5.t
+
+If you lose this password, please consult the section How to Reset the Root Password in the MySQL reference manual.
+
+fjAyGkaAf5.t root@
