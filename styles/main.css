@@ -23,8 +23,9 @@ main, #messages-card {
 }
 #messages-card-container {
   height: calc(50% - 150px);
-    width: 50%;
+    width: 100%;
   padding-bottom: 0;
+    padding-right: 300px;
     float: left;
 }
 #messages-card {
