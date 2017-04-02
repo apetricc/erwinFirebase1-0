@@ -1,0 +1,185 @@
+<!-- This is the corresponding "starter code" for 05_Interpreting Geocoding Responses in Udacity
+and Google's Maps API Course, Lesson 2 -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Geocoding service</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #map {
+        height: 100%;
+      }
+      #floating-panel {
+        position: absolute;
+        top: 10px;
+        left: 65%;
+        z-index: 5;
+        height:90%;
+        background-color: #fff;
+        padding: 5px;
+        border: 1px solid #999;
+        text-align: center;
+        font-family: 'Roboto','sans-serif';
+        line-height: 30px;
+        padding-left: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="floating-panel">
+      <input id="address" type="textbox" VALUE="Red Fort, Delhi">
+      <input id="submit" type="button" value="Geocode">
+      <div id="firstComponent">
+      </div>
+      <div id="secondComponent">
+      </div>
+    </div>
+    <div id="map"></div>
+    <script>
+        
+        
+         
+        
+        var locations = [];    
+        var point = "";
+        var combined = [];
+        
+        
+        
+      function initMap() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 8,
+          center: {lat: 35.5950581, lng: -82.55148689999999}
+        });
+        var geocoder = new google.maps.Geocoder();
+        document.getElementById('submit').addEventListener('click', function() {
+          geocodeAddress(geocoder, map);
+        });
+          
+          
+          //****************testCode********************
+        
+              
+          
+        //Add event listener for mouse clicks
+        google.maps.event.addListener(map, "click", function (event) {
+            var latitude = event.latLng.lat();
+            var longitude = event.latLng.lng();
+            locations.push(latitude);
+            locations.push(longitude);
+            point = "" +latitude +","+ longitude;
+            console.log("point is: " + point);
+            //probably don't even need locations array, I don't think...
+//            console.log("Locations 0 is: " + locations[0]);
+//            console.log("Locations 1 is: " + locations[1]);
+            radius = new google.maps.Circle({map: map,
+                radius: 100,
+                center: event.latLng,
+                fillColor: '#777',
+                fillOpacity: 0.1,
+                strokeColor: '#AA0000',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                draggable: true,    // Dragable
+                editable: true      // Resizable
+            });
+            reverseGeocodeAddress(geocoder, map);
+            //console.log(geocodeLatLng(geocoder, map, infowindow, locations.pop()));
+            // Center of map
+            map.panTo(new google.maps.LatLng(latitude,longitude));
+
+        }); //end addListener
+          
+          
+          
+           //****************testCode********************
+          
+          
+          
+          
+          
+      }//initMap()
+
+      function geocodeAddress(geocoder, resultsMap) {
+        var address = document.getElementById('address').value;
+        geocoder.geocode({'address': address}, function(results, status) {
+          if (status === google.maps.GeocoderStatus.OK) {
+            resultsMap.setCenter(results[0].geometry.location);
+            //TODO: Insert code here to take the first result's formatted address, and LOCATION.
+            document.getElementById('firstComponent').innerHTML="The Formatted Address is: "+results[0].formatted_address; 
+            document.getElementById('secondComponent').innerHTML="The Location is" + results[0].geometry.location; 
+          } else {
+            alert('Geocode was not successful for the following reason: ' + status);
+          }
+        });
+      }//geocodeAddress()
+        
+    
+      function reverseGeocodeAddress(geocoder, resultsMap) {
+        var address = document.getElementById('address').value;
+        geocoder.geocode({'address': point}, function(results, status) {
+          if (status === google.maps.GeocoderStatus.OK) {
+            resultsMap.setCenter(results[0].geometry.location);
+            //TODO: Insert code here to take the first result's formatted address, and LOCATION.
+            document.getElementById('firstComponent').innerHTML="The Formatted Address is: "+ results[0].formatted_address; // PUT STUFF HERE
+            document.getElementById('secondComponent').innerHTML="The Location is" + results[0].geometry.location; // PUT STUFF HERE
+          } else {
+            alert('Geocode was not successful for the following reason: ' + status);
+          }
+        });
+      }//geocodeAddress()    
+        //****************testCode********************
+        
+              
+          
+      
+          
+          function geocodeLatLng(geocoder, map, infowindow, location) {
+        var input = location;
+        var latlngStr = input.split(',', 2);
+        var latlng = {lat: parseFloat(latlngStr[0]), lng: parseFloat(latlngStr[1])};
+        geocoder.geocode({'location': latlng}, function(results, status) {
+          if (status === 'OK') {
+            if (results[1]) {
+              map.setZoom(11);
+              var marker = new google.maps.Marker({
+                position: latlng,
+                map: map
+              });
+              infowindow.setContent(results[1].formatted_address);
+              infowindow.open(map, marker);
+            } else {
+              window.alert('No results found');
+            }
+          } else {
+            window.alert('Geocoder failed due to: ' + status);
+          }
+        });
+      }
+        
+        //*****************testCode*********************
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+    </script>
+    <!--TODO: Insert your API Key in the below call to load the API.-->
+    <script async defer
+     src="https://maps.googleapis.com/maps/api/js?v=3&key=AIzaSyA_LU1gytLu1Z-VXx4bsvXF0l6mhrsVzXE&callback=initMap">
+    </script>
+  </body>
+</html>
