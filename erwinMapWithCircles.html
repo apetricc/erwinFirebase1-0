@@ -58,6 +58,9 @@
       <div class="mdl-layout__header-row mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet mdl-cell--12-col-desktop">
         <h3> Erwin Wifi Map 1-0</h3>
       </div>
+        <div id="testAppend">
+            <p>Here is the formatted_address: </p>
+        </div>
       <div id="user-container">
         <div hidden id="user-pic"></div>
         <div hidden id="user-name"></div>
@@ -91,6 +94,18 @@
         var locations = [];    
             var point = "";
             var combined = [];
+    
+        var addressString = "";
+    var txtNode = document.createTextNode("address goes here");
+    
+    
+//    textBox.setAttribute('id', 'textBoxID');
+document.getElementById("testAppend").appendChild(txtNode);
+    
+    
+    var addressNode;
+    
+    
         function initMap() {
             //constructor creates a new map - only center and zoom required.
           map = new google.maps.Map(document.getElementById('map'), {
@@ -180,8 +195,7 @@
                 editable: true      // Resizable
             });
             reverseGeocodeAddress(geocoder, map);
-            //console.log(geocodeLatLng(geocoder, map, infowindow, locations.pop()));
-            // Center of map
+//document.getElementById("testAppend").appendChild(addressNode);
             map.panTo(new google.maps.LatLng(latitude,longitude));
 
         }); //end addListener
@@ -196,8 +210,14 @@
           if (status === google.maps.GeocoderStatus.OK) {
             resultsMap.setCenter(results[0].geometry.location);
 //<input class="mdl-textfield__input" type="text" id="message">
-             document.getElementsByClassName('mdl-textfield__input').innerHTML="The Formatted Address is: "+results[0].formatted_address;  
-              console.log(results[0].formatted_address);
+            // document.getElementsByClassName('mdl-textfield__input').innerHTML="The Formatted Address is: "+results[0].formatted_address; 
+              addressString = results[0].formatted_address;
+              //console.log(results[0].formatted_address);
+              console.log("This is what's in the addressString var: " + addressString);
+              addressNode = document.createTextNode(addressString);
+              document.getElementById("message").appendChild(addressNode);
+              document.getElementById("testAppend").appendChild(addressNode);
+
           } else {
             alert('Geocode was not successful for the following reason: ' + status);
           }
@@ -211,15 +231,20 @@
 <!-- end map code -->
 
 
+<!--
+<script> 
+//test adding to the DOM code
+var txtNode1 = document.createTextNode("Hello world! This is a new node.");
+    var txtNode = document.createTextNode("I'm doing fine thanks.");
+    var textBox = document.createElement('p');
+    textBox.appendChild("txtNode");
+//    textBox.setAttribute('id', 'textBoxID');
+document.getElementById("testAppend").appendChild(txtNode1);
 
 
 
-
-
-
-
-
-
+</script>
+-->
 
 
 

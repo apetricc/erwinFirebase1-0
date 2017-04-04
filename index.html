@@ -58,6 +58,9 @@
       <div class="mdl-layout__header-row mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet mdl-cell--12-col-desktop">
         <h3> Erwin Wifi Map 1-0</h3>
       </div>
+        <div id="testAppend">
+            <p>Here is the formatted_address: </p>
+        </div>
       <div id="user-container">
         <div hidden id="user-pic"></div>
         <div hidden id="user-name"></div>
@@ -87,22 +90,41 @@
         //************************   ************************  ************************ 
         //************************************************************************************************    
         var map;
+    
+        var locations = [];    
+            var point = "";
+            var combined = [];
+    
+        var addressString = "";
+    var txtNode = document.createTextNode("address goes here");
+    
+    
+//    textBox.setAttribute('id', 'textBoxID');
+document.getElementById("testAppend").appendChild(txtNode);
+    
+    
+    var addressNode;
+    
+    
         function initMap() {
             //constructor creates a new map - only center and zoom required.
           map = new google.maps.Map(document.getElementById('map'), {
-          center: {lat: 40.741359, lng: -73.9980244},
-          zoom: 11
-        });
-        
+          center: {lat: 35.6, lng: -82.55},
+          zoom: 14
+        });//initialize map var
+        var geocoder = new google.maps.Geocoder();
+       
         //now we'll use an array, but in the future it will be from a database, although we haven't learned that yet
-        var locations = [
-                {title: 'Park Ave', location: {lat:40.7713024, lng:-73.9632393}},
-                {title: 'Chealsea Loft', location: {lat:40.7444883, lng:-73.9949465}},
-                {title: 'Union Square open Flat', location: {lat:40.7347062, lng:-73.9895759}},
-                {title: 'East Village Hipster Pad', location: {lat:40.7281777, lng:-73.984377}},
-                {title: 'Tribeca Arsty Bach Pad', location: {lat:40.7195264, lng:-74.0089934}},
-                {title: 'Chinatown Homey Space', location: {lat:40.7180628, lng:-73.9961237}},
-        ];
+//        var locations = [
+//                {title: 'Park Ave', location: {lat:40.7713024, lng:-73.9632393}},
+//                {title: 'Chealsea Loft', location: {lat:40.7444883, lng:-73.9949465}},
+//                {title: 'Union Square open Flat', location: {lat:40.7347062, lng:-73.9895759}},
+//                {title: 'East Village Hipster Pad', location: {lat:40.7281777, lng:-73.984377}},
+//                {title: 'Tribeca Arsty Bach Pad', location: {lat:40.7195264, lng:-74.0089934}},
+//                {title: 'Chinatown Homey Space', location: {lat:40.7180628, lng:-73.9961237}},
+//        ];
+            
+            
           //there's only ever ONE large info window, even though there are lots of markers
           var largeInfoWindow = new google.maps.InfoWindow();
             var bounds = new google.maps.LatLngBounds();
@@ -151,8 +173,56 @@
                     });
                 }
                 
-            } 
+            }//populateInfoWindow()
+            
+            //Add event listener for mouse clicks
+        google.maps.event.addListener(map, "click", function (event) {
+            var latitude = event.latLng.lat();
+            var longitude = event.latLng.lng();
+            locations.push(latitude);
+            locations.push(longitude);
+            point = "" +latitude +","+ longitude;
+            console.log("point is: " + point);
+            radius = new google.maps.Circle({map: map,
+                radius: 100,
+                center: event.latLng,
+                fillColor: '#777',
+                fillOpacity: 0.1,
+                strokeColor: '#AA0000',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                draggable: true,    // Dragable
+                editable: true      // Resizable
+            });
+            reverseGeocodeAddress(geocoder, map);
+//document.getElementById("testAppend").appendChild(addressNode);
+            map.panTo(new google.maps.LatLng(latitude,longitude));
+
+        }); //end addListener
       }//initMap()
+    
+    
+        
+      function reverseGeocodeAddress(geocoder, resultsMap) {
+        //var address = document.getElementById('address').value;
+        var address = "";  
+        geocoder.geocode({'address': point}, function(results, status) {
+          if (status === google.maps.GeocoderStatus.OK) {
+            resultsMap.setCenter(results[0].geometry.location);
+//<input class="mdl-textfield__input" type="text" id="message">
+            // document.getElementsByClassName('mdl-textfield__input').innerHTML="The Formatted Address is: "+results[0].formatted_address; 
+              addressString = results[0].formatted_address;
+              //console.log(results[0].formatted_address);
+              console.log("This is what's in the addressString var: " + addressString);
+              addressNode = document.createTextNode(addressString);
+              document.getElementById("message").appendChild(addressNode);
+              document.getElementById("testAppend").appendChild(addressNode);
+
+          } else {
+            alert('Geocode was not successful for the following reason: ' + status);
+          }
+        });
+      }//reverseGeocodeAddress()    
     </script>
         
     <script async defer
@@ -161,15 +231,20 @@
 <!-- end map code -->
 
 
+<!--
+<script> 
+//test adding to the DOM code
+var txtNode1 = document.createTextNode("Hello world! This is a new node.");
+    var txtNode = document.createTextNode("I'm doing fine thanks.");
+    var textBox = document.createElement('p');
+    textBox.appendChild("txtNode");
+//    textBox.setAttribute('id', 'textBoxID');
+document.getElementById("testAppend").appendChild(txtNode1);
 
 
 
-
-
-
-
-
-
+</script>
+-->
 
 
 
