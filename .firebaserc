@@ -1,6 +1,7 @@
 {
   "projects": {
     "testchatsecondtry": "testchat-fe0d2",
-    "erwinFirebase1-0": "erwinfirebase1-0"
+    "erwinFirebase1-0": "erwinfirebase1-0",
+    "erwinWifi1-0": "testchat-fe0d2"
   }
 }
