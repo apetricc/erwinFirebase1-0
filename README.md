@@ -1,7 +1,6 @@
-# Add wifiMap code to Firebase Web Codelab - Start code
+# Add wifiMap code to Firebase platform base code
 
-Adding my own code for wifiMap to this:
+Erwin wifi map uses the Google Maps API and a real-time database using Firebase to save wifi hotspots on a map and set markers on wifi hotspots saved by other users logged in to the database.  Currently, a Google account is needed to sign in, but this parameter may be modified to support any email, only certain emails, or anonymous users (anyone). 
+To build Erwin Wifi Map web app several examples were used in addition to the documentation for the Google Maps API and Firebase. Firebase is also used for deployment of the web app itself. 
 
-This folder contains the starting code for the [Firebase: Build a Real Time Web Chat App Codelab](https://codelabs.developers.google.com/codelabs/firebase-web/).
 
-If you'd like to jump directly to the end and see the finished code head to the [web](../web) directory.
