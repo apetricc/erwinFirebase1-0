@@ -98,7 +98,8 @@
             var combined = [];
     
         var addressString = "";
-    var txtNode = document.createTextNode("address goes here");
+   // var txtNode = document.createTextNode("address goes here");
+    var txtNode = $('#testAppend').append("Here is some text...");
     
     
 //    textBox.setAttribute('id', 'textBoxID');
@@ -206,7 +207,7 @@ document.getElementById("testAppend").appendChild(txtNode);
     
         
       function reverseGeocodeAddress(geocoder, resultsMap) {
-        //var address = document.getElementById('address').value;
+        $('#message').empty();
         var address = "";  
         geocoder.geocode({'address': point}, function(results, status) {
           if (status === google.maps.GeocoderStatus.OK) {
@@ -220,8 +221,8 @@ document.getElementById("testAppend").appendChild(txtNode);
               //document.getElementsByClassName("mdl-textfield__input").text = addressNode;
               $('#message').val(addressString);
               //document.getElementById("message").appendChild(addressNode);
-              document.getElementById("testAppend").appendChild(addressNode);
-
+              $('#testAppend').empty();
+              $('#testAppend').append(addressNode);
           } else {
             alert('Geocode was not successful for the following reason: ' + status);
           }
