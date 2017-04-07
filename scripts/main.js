@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 'use strict';
-
+var messageBox;
+var markerArray = [];
 // Initializes ErwinWifiMap.
 function WifiMap() {
   this.checkSetup();
@@ -43,12 +44,12 @@ function WifiMap() {
   this.messageInput.addEventListener('keyup', buttonTogglingHandler);
   this.messageInput.addEventListener('change', buttonTogglingHandler);
 
-  // Events for image upload.
-  this.submitImageButton.addEventListener('click', function(e) {
-    e.preventDefault();
-    this.mediaCapture.click();
-  }.bind(this));
-  this.mediaCapture.addEventListener('change', this.saveImageMessage.bind(this));
+  // // Events for image upload.
+  // this.submitImageButton.addEventListener('click', function(e) {
+  //   e.preventDefault();
+  //   this.mediaCapture.click();
+  // }.bind(this));
+  // this.mediaCapture.addEventListener('change', this.saveImageMessage.bind(this));
 
   this.initFirebase();
 }
@@ -78,7 +79,22 @@ WifiMap.prototype.loadMessages = function() {
   this.messagesRef.limitToLast(12).on('child_added', setMessage);
   this.messagesRef.limitToLast(12).on('child_changed', setMessage);
 };
-
+//*********************************************************************************************
+//loads locations to the map and listens for new ones.
+WifiMap.prototype.loadLocations = function() {
+    //reference the /messages/ database path
+    this.messagesRef = this.database.ref('messages');
+    //remove any event listeners on those messages
+    this.messagesRef.off();
+    
+    //load all the messages as the locations they are to markers array
+    var setLocation = function(data) {
+        var val = data.val();
+        this.displayLocation(data.key, val.name, val.text, val.photoUrl);
+    }.bind(this);
+    this.messagesRef.on('child_added', setLocation);
+    this.messagesRef.on('child_changed', setLocation);
+}//loadLocations()
 // Saves a new message on the Firebase DB.
 WifiMap.prototype.saveMessage = function(e) {
   e.preventDefault();
@@ -113,47 +129,47 @@ WifiMap.prototype.setImageUrl = function(imageUri, imgElement) {
   }
 };
 
-// Saves a new message containing an image URI in Firebase.
-// This first saves the image in Firebase storage.
-WifiMap.prototype.saveImageMessage = function(event) {
-  event.preventDefault();
-  var file = event.target.files[0];
+// // Saves a new message containing an image URI in Firebase.
+// // This first saves the image in Firebase storage.
+// WifiMap.prototype.saveImageMessage = function(event) {
+//   event.preventDefault();
+//   var file = event.target.files[0];
 
-  // Clear the selection in the file picker input.
-  this.imageForm.reset();
+//   // Clear the selection in the file picker input.
+//   this.imageForm.reset();
 
-  // Check if the file is an image.
-  if (!file.type.match('image.*')) {
-    var data = {
-      message: 'You can only share images',
-      timeout: 2000
-    };
-    this.signInSnackbar.MaterialSnackbar.showSnackbar(data);
-    return;
-  }
-  // Check if the user is signed-in
-  if (this.checkSignedInWithMessage()) {
-    // We add a message with a loading icon that will get updated with the shared image.
-    var currentUser = this.auth.currentUser;
-    this.messagesRef.push({
-      name: currentUser.displayName,
-      imageUrl: WifiMap.LOADING_IMAGE_URL,
-      photoUrl: currentUser.photoURL || '/images/profile_placeholder.png'
-    }).then(function(data) {
+//   // Check if the file is an image.
+//   if (!file.type.match('image.*')) {
+//     var data = {
+//       message: 'You can only share images',
+//       timeout: 2000
+//     };
+//     this.signInSnackbar.MaterialSnackbar.showSnackbar(data);
+//     return;
+//   }
+//   // Check if the user is signed-in
+//   if (this.checkSignedInWithMessage()) {
+//     // We add a message with a loading icon that will get updated with the shared image.
+//     var currentUser = this.auth.currentUser;
+//     this.messagesRef.push({
+//       name: currentUser.displayName,
+//       imageUrl: WifiMap.LOADING_IMAGE_URL,
+//       photoUrl: currentUser.photoURL || '/images/profile_placeholder.png'
+//     }).then(function(data) {
 
-      // Upload the image to CLoud Storage.
-      var filePath = currentUser.uid + '/' + data.key + '/' + file.name;
-      return this.storage.ref(filePath).put(file).then(function(snapshot) {
+//       // Upload the image to CLoud Storage.
+//       var filePath = currentUser.uid + '/' + data.key + '/' + file.name;
+//       return this.storage.ref(filePath).put(file).then(function(snapshot) {
 
-        // Get the file's Storage URI and update the chat message placeholder.
-        var fullPath = snapshot.metadata.fullPath;
-        return data.update({imageUrl: this.storage.ref(fullPath).toString()});
-      }.bind(this));
-    }.bind(this)).catch(function(error) {
-      console.error('There was an error uploading a file to Cloud Storage: ', error);
-    });
-  }
-};
+//         // Get the file's Storage URI and update the chat message placeholder.
+//         var fullPath = snapshot.metadata.fullPath;
+//         return data.update({imageUrl: this.storage.ref(fullPath).toString()});
+//       }.bind(this));
+//     }.bind(this)).catch(function(error) {
+//       console.error('There was an error uploading a file to Cloud Storage: ', error);
+//     });
+//   }
+// };
 
 // Signs-in Friendly Chat.
 WifiMap.prototype.signIn = function() {
@@ -191,6 +207,9 @@ WifiMap.prototype.onAuthStateChanged = function(user) {
 
     // We load currently existing chant messages.
     this.loadMessages();
+      
+      //we load currently existing locations
+      this.loadLocations();
 
     // We save the Firebase Messaging Device token and enable notifications.
     this.saveMessagingDeviceToken();
@@ -298,9 +317,30 @@ WifiMap.prototype.displayMessage = function(key, name, text, picUrl, imageUri) {
   this.messageList.scrollTop = this.messageList.scrollHeight;
   this.messageInput.focus();
 };
+//****************************************************************************************************
+//display locations in the UI
+WifiMap.prototype.displayLocation = function(key, name, text, picUrl) {
+    var div = document.getElementById(key);
+    if (!div) {
+        var container = document.createElement('div');
+        container.innerHTML = WifiMap.MESSAGE_TEMPLATE;
+        div = container.firstChild;
+        div.setAttribute('id', key);
+        this.messageList.appendChild(div);
+    }
+}
+
+
+
+
+
+
+
+
 
 // Enables or disables the submit button depending on the values of the input
 // fields.
+//if (this.messageInput.value) {
 WifiMap.prototype.toggleButton = function() {
   if (this.messageInput.value) {
     this.submitButton.removeAttribute('disabled');

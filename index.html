@@ -198,8 +198,8 @@
                 editable: true      // Resizable
             });
             reverseGeocodeAddress(geocoder, map);
-//document.getElementById("testAppend").appendChild(addressNode);
-            map.panTo(new google.maps.LatLng(latitude,longitude));
+
+            //map.panTo(new google.maps.LatLng(latitude,longitude));
 
         }); //end addListener
       }//initMap()
@@ -211,16 +211,17 @@
         var address = "";  
         geocoder.geocode({'address': point}, function(results, status) {
           if (status === google.maps.GeocoderStatus.OK) {
-            resultsMap.setCenter(results[0].geometry.location);
-//<input class="mdl-textfield__input" type="text" id="message">
-            // document.getElementsByClassName('mdl-textfield__input').innerHTML="The Formatted Address is: "+results[0].formatted_address; 
+            //resultsMap.setCenter(results[0].geometry.location);
+
               addressString = results[0].formatted_address;
               //console.log(results[0].formatted_address);
               console.log("This is what's in the addressString var: " + addressString);
               addressNode = document.createTextNode(addressString);
               //document.getElementsByClassName("mdl-textfield__input").text = addressNode;
+              //$('#message').val(addressString);
               $('#message').val(addressString);
               //document.getElementById("message").appendChild(addressNode);
+              messageInput.value = addressString;
               $('#testAppend').empty();
               $('#testAppend').append(addressNode);
           } else {
