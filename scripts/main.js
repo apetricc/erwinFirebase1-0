@@ -62,12 +62,14 @@ WifiMap.prototype.initFirebase = function() {
   this.storage = firebase.storage();
   //initiates firebase auth and listen to auth state changes.
   this.auth.onAuthStateChanged(this.onAuthStateChanged.bind(this));
+   
 };
 
 // Loads chat messages history and listens for upcoming ones.
 WifiMap.prototype.loadMessages = function() {
   // Reference to the /messages/ database path.
   this.messagesRef = this.database.ref('messages');
+    
   // Make sure we remove all previous listeners.
   this.messagesRef.off();
 
