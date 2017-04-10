@@ -249,6 +249,9 @@ main, #messages-card {
         text-align: left;
         width: 340px;
       }
+#submitButton {
+    align-content: left;
+}
 body, html {
   height: 100%;
   width: 100%;

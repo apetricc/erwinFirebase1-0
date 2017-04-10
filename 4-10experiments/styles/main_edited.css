@@ -250,15 +250,6 @@ main, #messages-card {
         text-align: left;
         width: 340px;
       }
-#submitButton {
-    align-content: center;
-}
-#locationClicked {
-    
-    margin: 10px;
-    align-content: left;
-    text-align: left;
-}
 body, html {
   height: 100%;
   width: 100%;
