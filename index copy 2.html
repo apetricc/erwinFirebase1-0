@@ -1,6 +1,3 @@
-
-
-
 <!doctype html>
 <!--
   Copyright 2015 Google Inc. All rights reserved.
@@ -23,7 +20,8 @@
   <meta name="description" content="Learn how to use the Firebase platform on the Web">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Erwin Wifi Map 1-0</title>
-    <!-- Disable tap highlight on IE -->
+
+  <!-- Disable tap highlight on IE -->
   <meta name="msapplication-tap-highlight" content="no">
 
   <!-- Web Application Manifest -->
@@ -60,13 +58,11 @@
   <header class="mdl-layout__header mdl-color-text--white mdl-color--light-green-700">
     <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet mdl-grid">
       <div class="mdl-layout__header-row mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet mdl-cell--12-col-desktop">
-        <h2> Erwin Wifi Map 1-0.1</h2>
+        <h3> Erwin Wifi Map 1-0</h3>
       </div>
-        
-        <div id="locationClicked">
-            <h4>Location Clicked: </h4>
+        <div id="testAppend">
+            <p>Here is the formatted_address: </p>
         </div>
-
       <div id="user-container">
         <div hidden id="user-pic"></div>
         <div hidden id="user-name"></div>
@@ -87,13 +83,14 @@
 <div id="map"></div>
 <script>
         
-        var asheville = {lat: 35.6, lng: -82.55};
+//        var asheville = {lat: 35.6, lng: -82.55};
 //        var erwin = {lat:35.6, lng:-82.63};
 //       
         
         //global array var for all the markers    
-       var markers = [asheville]; 
-  //**************************    
+       var markers = []; 
+        //************************   ************************  ************************ 
+        //************************************************************************************************    
         var map;
     
         var locations = [];    
@@ -101,10 +98,12 @@
             var combined = [];
     
         var addressString = "";
-   
-
+   // var txtNode = document.createTextNode("address goes here");
+    var txtNode = $('#testAppend').append("Here is some text...");
     
     
+//    textBox.setAttribute('id', 'textBoxID');
+//document.getElementById("testAppend").appendChild(txtNode);
     
     
     var addressNode;
@@ -114,12 +113,70 @@
             //constructor creates a new map - only center and zoom required.
           map = new google.maps.Map(document.getElementById('map'), {
           center: {lat: 35.6, lng: -82.55},
-          zoom: 7
+          zoom: 14
         });//initialize map var
         var geocoder = new google.maps.Geocoder();
+       
+        //now we'll use an array, but in the future it will be from a database, although we haven't learned that yet
+//        var locations = [
+//                {title: 'Park Ave', location: {lat:40.7713024, lng:-73.9632393}},
+//                {title: 'Chealsea Loft', location: {lat:40.7444883, lng:-73.9949465}},
+//                {title: 'Union Square open Flat', location: {lat:40.7347062, lng:-73.9895759}},
+//                {title: 'East Village Hipster Pad', location: {lat:40.7281777, lng:-73.984377}},
+//                {title: 'Tribeca Arsty Bach Pad', location: {lat:40.7195264, lng:-74.0089934}},
+//                {title: 'Chinatown Homey Space', location: {lat:40.7180628, lng:-73.9961237}},
+//        ];
             
             
-          
+          //there's only ever ONE large info window, even though there are lots of markers
+          var largeInfoWindow = new google.maps.InfoWindow();
+            var bounds = new google.maps.LatLngBounds();
+            
+            //using the locations array to create array of markers on init
+            for (var i = 0; i < locations.length; i++) {
+                //get position from the locations array
+                var position = locations[i].location;
+                var title = locations[i].title;
+                
+                //create a marker per location, and put into markers array
+                var marker = new google.maps.Marker({
+                    map: map,
+                    position: position,
+                    title: title,
+                    animation: google.maps.Animation.DROP,
+                    id: i
+                });
+                
+                //push the marker to our array of markers
+                markers.push(marker);
+                //create event listener for each marker
+                marker.addListener('click', function() {
+                    populateInfoWindow(this, largeInfoWindow);
+                });
+                bounds.extend(markers[i].position);
+                
+            }//for length of locations array
+            //extend the boundaries of the map for each marker
+            map.fitBounds(bounds);
+            
+            //function to populate infowindow when marker is clicked--we're only
+            //allowing one infowindow that will open when that marker is clicked
+            //and populate based on that markers position
+            function populateInfoWindow(marker, infowindow) {
+                //check to make sure the infowindow is not already opened on
+                //this marker
+                if (infowindow.marker != marker) {
+                    infowindow.marker = marker;
+                    infowindow.setContent('<div>' + marker.title + '</div>');
+                    infowindow.open(map, marker);
+                    //make sure the marker property is cleared if the infowindow 
+                    //is closed
+                    infowindow.addListener('closeclick', function() {
+                        infowindow.setMarker = null;
+                    });
+                }
+                
+            }//populateInfoWindow()
             
             //Add event listener for mouse clicks
         google.maps.event.addListener(map, "click", function (event) {
@@ -160,11 +217,13 @@
               //console.log(results[0].formatted_address);
               console.log("This is what's in the addressString var: " + addressString);
               addressNode = document.createTextNode(addressString);
-              //$('#locationClicked').val(addressString);
-             
-              //messageInput.value = addressString;
-              $('#locationClicked').empty();
-              $('#locationClicked').append("<h4>Location Clicked: </h4>"+addressString + "; ");
+              //document.getElementsByClassName("mdl-textfield__input").text = addressNode;
+              //$('#message').val(addressString);
+              $('#message').val(addressString);
+              //document.getElementById("message").appendChild(addressNode);
+              messageInput.value = addressString;
+              $('#testAppend').empty();
+              $('#testAppend').append(addressNode);
           } else {
             alert('Geocode was not successful for the following reason: ' + status);
           }
@@ -216,7 +275,12 @@ document.getElementById("testAppend").appendChild(txtNode1);
               Send
             </button>
           </form>
-          
+          <form id="image-form" action="#">
+            <input id="mediaCapture" type="file" accept="image/*,capture=camera">
+            <button id="submitImage" title="Add an image" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-color--amber-400 mdl-color-text--white">
+              <i class="material-icons">image</i>
+            </button>
+          </form>
         </div>
       </div>
 
@@ -231,22 +295,22 @@ document.getElementById("testAppend").appendChild(txtNode1);
 
 <!-- Link to Firebase package on the web -->
 
-<script src="https://www.gstatic.com/firebasejs/3.7.5/firebase.js"></script>
+<script src="https://www.gstatic.com/firebasejs/3.7.3/firebase.js"></script>
 <script>
   // Initialize Firebase
   var config = {
-    apiKey: "AIzaSyB1kAV6R5Ltq_9FvZ4FiCk9dnYMLeh4siA",
-    authDomain: "testchat4-7.firebaseapp.com",
-    databaseURL: "https://testchat4-7.firebaseio.com",
-    projectId: "testchat4-7",
-    storageBucket: "testchat4-7.appspot.com",
-    messagingSenderId: "138036155823"
+    apiKey: "AIzaSyDAbzp19AS5je9NrVfGQcXKemegyzX9CnE",
+    authDomain: "erwinfirebase1-0.firebaseapp.com",
+    databaseURL: "https://erwinfirebase1-0.firebaseio.com",
+    storageBucket: "erwinfirebase1-0.appspot.com",
+    messagingSenderId: "814126062486"
   };
   firebase.initializeApp(config);
 </script>
 
 
-<script src="https://code.jquery.com/jquery-3.1.0.js"></script>
-<script src="testDB.js"></script>
+
+
+<script src="scripts/main.js"></script>
 </body>
 </html>

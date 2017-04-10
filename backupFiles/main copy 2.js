@@ -13,21 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-//use jquery to make things easier
-$(document).ready(function() {
- var rootRef = firebase.database().ref().child("messages");
-
-  rootRef.on("child_added", snap => {
-    //var name = snap.child("name").val();
-    var text = snap.child("text").val();
-    $("#clickedAddress").append(""+name+"" + text);
-  });
-
-
-});
-
-
 'use strict';
 var messageBox;
 var markerArray = [];

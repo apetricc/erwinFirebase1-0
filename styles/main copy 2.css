@@ -29,11 +29,9 @@ main, #messages-card {
     float: left;
 }
 #messages-card {
-  margin-top: 0px;
-  position: fixed;
-    
-    left: 1em;
-    bottom: 60em;
+  margin-top: 15px;
+    float: left;
+
 }
 .mdl-layout__header-row span {
   margin-left: 15px;
@@ -110,7 +108,7 @@ main, #messages-card {
   display: flex;
   flex-direction: row;
   width: calc(100% - 48px);
-  float: top;
+  float: left;
 }
 #image-form {
   display: flex;
@@ -129,7 +127,7 @@ main, #messages-card {
   min-height: 90;
 }
 .mdl-card {
-  background: linear-gradient(lightgray, #f9f9f9);
+  background: linear-gradient(white, #f9f9f9);
   justify-content: space-between;
 }
 #user-container {
@@ -208,7 +206,10 @@ main, #messages-card {
 
 /*begin map style code:*/
 
-      
+      #erwinTitle {
+        text-align: left;
+          
+      }
 
       .container {
         height: 100%;
