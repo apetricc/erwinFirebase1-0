@@ -61,7 +61,38 @@
     this.auth.onAuthStateChanged(this.onAuthStateChanged.bind(this));
 
   };
+  //*********************************************************************************************
+  //loads locations to the map and listens for new ones.
+  WifiMap.prototype.loadLocations = function() {
+      //reference the /messages/ database path
+      this.locationsRef = this.database.ref().child('Locations');
+      
 
+
+
+      //remove any event listeners on those messages
+      //this.locationsRef.off();
+
+  //     var rootRef = firebase.database().ref().child("Users");
+
+  // rootRef.on("child_added", snap => {
+  //   var name = snap.child("Name").val();
+  //   var email = snap.child("Email").val();
+  //   $("#table_body").append("<tr><td>" + name + "</td><td>" + email +
+  //                       "</td><td><button>Remove</button></td></tr>");
+  // });
+
+
+
+
+      //load all the messages as the locations they are to markers array
+      // var setLocation = function(data) {
+      //     var val = data.val();
+      //     this.displayLocation(data.key, val.name, val.text, val.photoUrl);
+      // }.bind(this);
+      // this.messagesRef.on('child_added', setLocation);
+      // this.messagesRef.on('child_changed', setLocation);
+  }//loadLocations()
   // Loads chat messages history and listens for upcoming ones.
   WifiMap.prototype.loadMessages = function() {
     // Reference to the /messages/ database path.
@@ -114,7 +145,8 @@
     setTimeout(function() {div.classList.add('visible')}, 1);
     this.messageList.scrollTop = this.messageList.scrollHeight;
     this.messageInput.focus();
-  };
+  };//displayMessage()
+
   //****************************************************************************************************
   //display locations in the UI
   WifiMap.prototype.displayLocation = function() {
@@ -123,49 +155,25 @@
 
 
 
-  
-  //*********************************************************************************************
-  //loads locations to the map and listens for new ones.
-  WifiMap.prototype.loadLocations = function() {
-      //reference the /messages/ database path
-      this.locationsRef = this.database.ref().child('Locations');
-      alert("This is what's in locationsRef" + this.locationsRef.val());
 
 
-
-      //remove any event listeners on those messages
-      //this.locationsRef.off();
-
-  //     var rootRef = firebase.database().ref().child("Users");
-
-  // rootRef.on("child_added", snap => {
-  //   var name = snap.child("Name").val();
-  //   var email = snap.child("Email").val();
-  //   $("#table_body").append("<tr><td>" + name + "</td><td>" + email +
-  //                       "</td><td><button>Remove</button></td></tr>");
-  // });
-
-
-
-
-      //load all the messages as the locations they are to markers array
-      // var setLocation = function(data) {
-      //     var val = data.val();
-      //     this.displayLocation(data.key, val.name, val.text, val.photoUrl);
-      // }.bind(this);
-      // this.messagesRef.on('child_added', setLocation);
-      // this.messagesRef.on('child_changed', setLocation);
-  }//loadLocations()
-  // Saves a new message on the Firebase DB.
+  // Saves a new location on the Firebase DB.
   WifiMap.prototype.saveMessage = function(e) {
     e.preventDefault();
+    var streetAddress;
+    var latlng;
+    var locationInfo;
     // Check that the user entered a message and is signed in.
     if (this.messageInput.value && this.checkSignedInWithMessage()) {
+      locationInfo = (this.messageInput.value).split(";", 2);
+      streetAddress = locationInfo[0];
+      latlng = locationInfo[1];
       var currentUser = this.auth.currentUser;
       // Add a new message entry to the Firebase Database.
       this.messagesRef.push({
         name: currentUser.displayName,
-        text: this.messageInput.value,
+        streetAddress: streetAddress,
+        latlng: latlng,  
         photoUrl: currentUser.photoURL || '../images/profile_placeholder.png'
       }).then(function() {
         //clear message text field and SEND button state.
@@ -191,16 +199,14 @@
   };
 
 
-  // Signs-in Friendly Chat.
+  // Signs-in wifimap.
   WifiMap.prototype.signIn = function() {
-    // Sign in firebase using popup auth and Google as the identity provider,
-    //I would like to try using something that doesn't require a popup!!
+    // Sign in firebase using redirect auth with Google as the identity provider    
     var provider = new firebase.auth.GoogleAuthProvider();
     this.auth.signInWithRedirect(provider);
-    //this.auth.signInWithPopup(provider);
   };
 
-  // Signs-out of Friendly Chat.
+  // Signs-out of wifimap.
   WifiMap.prototype.signOut = function() {
     // Sign out of Firebase.
     this.auth.signOut();
@@ -210,8 +216,8 @@
   WifiMap.prototype.onAuthStateChanged = function(user) {
     if (user) { // User is signed in!
       // Get profile pic and user's name from the Firebase user object.
-      var profilePicUrl = user.photoURL;   // TODO(DEVELOPER): Get profile pic.
-      var userName = user.displayName;        // TODO(DEVELOPER): Get user's name.
+      var profilePicUrl = user.photoURL;   // Get profile pic.
+      var userName = user.displayName;        // Get user's name.
 
       // Set the user's profile pic and name.
       this.userPic.style.backgroundImage = 'url(' + profilePicUrl + ')';
@@ -225,7 +231,7 @@
       // Hide sign-in button.
       this.signInButton.setAttribute('hidden', 'true');
 
-      // We load currently existing chant messages.
+      // We load currently existing messages.
       this.loadMessages();
 
         //we load currently existing locations
