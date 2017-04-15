@@ -63,11 +63,8 @@
   };
   //*********************************************************************************************
   //loads locations to the map and listens for new ones.
-  WifiMap.prototype.loadLocations = function() {
-
-      pullLatLngs();
-  };//loadLocations()
   
+  //**********************************
   // Loads chat messages history and listens for upcoming ones.
   WifiMap.prototype.loadMessages = function() {
     // Reference to the /messages/ database path.
@@ -79,7 +76,7 @@
     // Loads the last 12 messages and listens for new ones.
     var setMessage = function(data) {
       var val = data.val();
-      this.displayMessage(data.key, val.name, val.streetAddress, val.photoUrl, val.imageUrl);
+      this.displayMessage(data.key, val.name, val.streetAddress, val.photoUrl, val.imageUrI);
     }.bind(this);
     this.messagesRef.limitToLast(12).on('child_added', setMessage);
     this.messagesRef.limitToLast(12).on('child_changed', setMessage);
@@ -107,14 +104,6 @@
       messageElement.textContent = text;
       // Replace all line breaks by <br>.
       messageElement.innerHTML = messageElement.innerHTML.replace(/\n/g, '<br>');
-    } else if (imageUri) { // If the message is an image.
-      var image = document.createElement('img');
-      image.addEventListener('load', function() {
-        this.messageList.scrollTop = this.messageList.scrollHeight;
-      }.bind(this));
-      this.setImageUrl(imageUri, image);
-      messageElement.innerHTML = '';
-      messageElement.appendChild(image);
     }
     // Show the card fading-in.
     setTimeout(function() {div.classList.add('visible')}, 1);
@@ -123,6 +112,19 @@
   };//displayMessage()
 
   //****************************************************************************************************
+
+  //      WifiMap.prototype.loadLocations() {
+//            this.messagesRef = this.database.ref('messages');
+//
+//            // Make sure we remove all previous listeners.
+//            this.messagesRef.off();
+//
+//            // Loads the last 12 messages and listens for new ones.
+//            var setMarker = function(data) {
+//              var val = data.val();
+//              this.displayMarker(data.key, val.latlng);
+//            }.bind(this);
+//      };   
   //display locations in the UI
   WifiMap.prototype.displayLocation = function() {
     alert("display location");
@@ -153,7 +155,7 @@
       }).then(function() {
         //clear message text field and SEND button state.
         WifiMap.resetMaterialTextfield(this.messageInput);
-        //this.toggleButton();
+        this.toggleButton();
       }.bind(this)).catch(function(error) {
         console.error('Error writing new message to Firebase Database.', error);
       });
@@ -210,7 +212,7 @@
       this.loadMessages();
 
         //we load currently existing locations
-        this.loadLocations();
+        //this.loadLocations();
 
       // We save the Firebase Messaging Device token and enable notifications.
       this.saveMessagingDeviceToken();
@@ -294,9 +296,9 @@
 
 
 
-  // Enables or disables the submit button depending on the values of the 
-  // input fields.
-  
+  // Enables or disables the submit button depending on the values of the input
+  // fields.
+  //if (this.messageInput.value) {
   WifiMap.prototype.toggleButton = function() {
     if (true) {
       this.submitButton.removeAttribute('disabled');
@@ -322,41 +324,9 @@
 
   window.onload = function() {
     window.wifiMap = new WifiMap();
-//            var rootRef = firebase.database().ref().child("Locations");
-//      rootRef.on("child_added", snap => {
-//        //var latlng = snap.child("latlng").val();
-//        var latlng = snap.child("asheville").val();
-//        $("#testAppend").append(latlng);
-//      });
-
-
-      
-
-  
   };
-
-
-
-
-function pullLatLngs() {
-          
-   //this works, but does function twice for some reason...    
-   var rootRef = firebase.database().ref().child("messages");
-
-   rootRef.on("child_added", snap => {
-     var name = snap.child("latlng").val();
-     //var email = snap.child("Email").val();
-     $("#testAppend").append("<tr><td>" + name + "</td><td>" +
-                         "</td><td><button>Remove</button></td></tr>");
-   });
-};
-
-
-
-
-
-
-    function reverseGeocodeAddress(geocoder, resultsMap) {
+    //function to produce formatted address from latLng coordinates
+      function reverseGeocodeAddress(geocoder, resultsMap) {
         $('#message').empty();
         var address = "";  
         geocoder.geocode({'address': point}, function(results, status) {
@@ -365,22 +335,23 @@ function pullLatLngs() {
             resultsMap.setCenter(results[0].geometry.location);
 
               addressString = results[0].formatted_address;
-              //alert(results[0].geometry.location);
+    
               console.log("This is what's in the addressString var: " + addressString);
               addressNode = document.createTextNode(addressString);
-              
-              $('#message').val(addressString + "; \n" + results[0].geometry.location);
-             
+              //version of append with the latLng as well as the formatted_address
+//              $('#message').val(addressString + "; \n" + results[0].geometry.location);
+              $('#message').val(addressString);
           } else {
             alert('Geocode was not successful for the following reason: ' + status);
           }
         });
-      };//reverseGeocodeAddress()  
-      
+      }//reverseGeocodeAddress()  
 
 
 
+   
 
-      function addMarkers(geocoder, resultsMap) {
 
-      }
+        function displayMarker(key, latlng) {
+            
+        }
