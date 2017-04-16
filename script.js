@@ -28,7 +28,9 @@
     this.messageForm = document.getElementById('message-form');
     this.messageInput = document.getElementById('message');
     this.submitButton = document.getElementById('submit');
-    
+    //could also disable the messageInput div, but then text is greyed out which is only an aesthetic concern
+    this.messageInput.disabled = "true";
+    //this.messageInput.setAttribute = ("editable", "false");
     this.userPic = document.getElementById('user-pic');
     this.userName = document.getElementById('user-name');
     this.signInButton = document.getElementById('sign-in');
@@ -305,33 +307,51 @@
           'displayed there.');
     }
   };
-
-  window.onload = function() {
-    window.wifiMap = new WifiMap();
-    initMap(); 
-      
-  };
-
-
+//
+//  window.onload = function() {
+//    window.wifiMap = new WifiMap();
+//    initMap(); 
+//      
+//  };
 
 
-function pullLatLngs() {
-          //   
+
+
+//function pullLatLngs() {
+//          //   
+//   var rootRef = firebase.database().ref().child("messages");
+//
+//   rootRef.on("child_added", snap => {
+//     var latlng = snap.child("latlng").val();
+//     var streetAddress = snap.child("streetAddress").val();   
+//     markerArray.push({address:streetAddress, location: latlng});
+//       //console.log("Marker array contents: " + markerArray);
+//     $("#testAppend").append("<tr><td>" + latlng + streetAddress + "</td><td>" +
+//                         "</td><td><button>Remove</button></td></tr>");
+//       createMarker();
+//       
+//   });
+//};
+
+function pullLatLngs() { 
    var rootRef = firebase.database().ref().child("messages");
-
+   var str = "";
+    var lat = "";
+    var lng = "";
+    var formattedLatLng = "";
    rootRef.on("child_added", snap => {
      var latlng = snap.child("latlng").val();
      var streetAddress = snap.child("streetAddress").val();   
-     markerArray.push({address:streetAddress, location: latlng});
-       //console.log("Marker array contents: " + markerArray);
-     $("#testAppend").append("<tr><td>" + latlng + streetAddress + "</td><td>" +
-                         "</td><td><button>Remove</button></td></tr>");
-       createMarker();
-       
+     lat = latlng.substring(latlng.indexOf('(', 0) + 1, latlng.indexOf(',', 0));
+     lng = latlng.substring(latlng.indexOf(',', 0) + 1, latlng.indexOf(')', 0));
+     formattedLatLng = "{" + lat + "," + lng + "}";
+     markerArray.push({location: formattedLatLng});
+
    });
+    for (var i = 0; i < markerArray.length; i++) {
+        console.log("From pullLatLngs()--> Location " + i +" is: " + markerArray[i].location);
+    }
 };
-
-
 
 
     function createMarker() {
@@ -344,6 +364,7 @@ function pullLatLngs() {
             var address = markerArray[i].address;
             console.log("Position is: " + position);
             console.log("Address is: " + address);
+            console.log("Geocoder gives: " + geocoder.geocode(address));
         }
     };//createMarker
 
@@ -361,7 +382,19 @@ function pullLatLngs() {
         return markerImage;
       };
 
+
+
+
+
+//*************
+//*************
+//*************
+//******************************************************************************
+//*************
+//function to get street address from lat lng coordinates
     function reverseGeocodeAddress(geocoder, resultsMap) {
+        window.wifiMap.messageInput.disabled = "false";
+        
         $('#message').empty();
         var address = "";  
         geocoder.geocode({'address': point}, function(results, status) {
@@ -370,19 +403,24 @@ function pullLatLngs() {
             resultsMap.setCenter(results[0].geometry.location);
 
               addressString = results[0].formatted_address;
-              //alert(results[0].geometry.location);
+              
               console.log("This is what's in the addressString var: " + addressString);
               addressNode = document.createTextNode(addressString);
               
               $('#message').val(addressString + "; \n" + results[0].geometry.location);
-             
+              
           } else {
             alert('Geocode was not successful for the following reason: ' + status);
           }
         });
+        window.wifiMap.messageInput.disabled = "true";
       };//reverseGeocodeAddress()  
       
-
+    function geocodeAddress(geocoder, resultsMap) {
+      var readableAddress = markerArray[0].streetAddress;
+        var geocoder1 = new google.maps.Geocoder();
+        console.log("geocodeAddress starts with this: " + geocoder1.geocode(readableAddress));
+    };
 
         
 //        var asheville = {lat: 35.6, lng: -82.55};
@@ -400,15 +438,23 @@ function pullLatLngs() {
     
         var addressString = "";
     
-        function initMap() {
-            
+    function initMap() {
+        
         //constructor creates a new map - only center and zoom required.
           map = new google.maps.Map(document.getElementById('map'), {
           center: {lat: 35.6, lng: -82.55},
           zoom: 14
         });//initialize map var
         var geocoder = new google.maps.Geocoder();
-
+        
+        var asheville = {lat: 35.5946531, lng: -82.55577770000002};
+        var marker = new google.maps.Marker({
+          position: asheville,
+          map: map,
+          title: 'First Marker!'
+        });
+        
+        
             //and populate based on that markers position
             function populateInfoWindow(marker, infowindow) {
                 //check to make sure the infowindow is not already opened on
@@ -422,7 +468,7 @@ function pullLatLngs() {
                     infowindow.addListener('closeclick', function() {
                         infowindow.setMarker = null;
                     });
-                }
+     }
                 
             }//populateInfoWindow()
             
@@ -452,4 +498,17 @@ function pullLatLngs() {
         }); //end addListener
             
       }//initMap()
+
+
+
+  window.onload = function() {
+    window.wifiMap = new WifiMap();
+    pullLatLngs();
+    initMap();
+
+      
+  };
+         for (var i = 0; i < markerArray.length; i++) {
+        console.log("Location " + i +" is: " + markerArray[i].location);
+         }
   

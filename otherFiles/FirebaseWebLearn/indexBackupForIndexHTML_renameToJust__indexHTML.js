@@ -17,36 +17,28 @@ var messagesRef = firebase.database().ref().child("messages");
        // console.log(messagesRef);
 });
 
-    var markerArray = [];
-    function pullLatLngs() {
-                  //   
-           var rootRef = firebase.database().ref().child("messages");
-           var str = "";
-            var lat = "";
-            var lng = "";
-            var formattedLatLng = "";
-           rootRef.on("child_added", snap => {
-             var latlng = snap.child("latlng").val();
-             var streetAddress = snap.child("streetAddress").val();   
-             lat = latlng.substring(latlng.indexOf('(', 0) + 1, latlng.indexOf(',', 0));
-             lng = latlng.substring(latlng.indexOf(',', 0) + 1, latlng.indexOf(')', 0));
-             formattedLatLng = "{" + lat + "," + lng + "}";
-             markerArray.push({address:streetAddress, location: formattedLatLng});
 
-           });
-           markerArray.on('value', function() {
-               for (var i = 0; i < markerArray.length; i++) {
-                    console.log("Location " + i +" is: " + markerArray[i].location);
-               }
-           });
-    };
+function pullLatLngs() {
+          //   
+   var rootRef = firebase.database().ref().child("messages");
 
+   rootRef.on("child_added", snap => {
+     var latlng = snap.child("latlng").val();
+     var streetAddress = snap.child("streetAddress").val();   
+     markerArray.push({address:streetAddress, location: latlng});
+       //console.log("Marker array contents: " + markerArray);
+     $("#testAppend").append("<tr><td>" + latlng + streetAddress + "</td><td>" +
+                         "</td><td><button>Remove</button></td></tr>");
+        console.log("stuff in child: " + latlng);
+       
+   });
+};
 
 
 
 function submitClick() {
   //check that function is working
- // window.alert("click detected, function initiated.");
+  window.alert("click detected, function initiated.");
 
   //Initialize firebase database & store in var
   var firebaseRef = firebase.database().ref();
@@ -57,8 +49,8 @@ function submitClick() {
   var messageText = mainText.value;
 
 //pushing to database, & setting what we push as the var with our value in it
-  //firebaseRef.push().set(messageText);
-    pullLatLngs();
+  firebaseRef.push().set(messageText);
+
   //don't need to reference database again since it's being done in the html file
   //https://fir-web-learn-2f50a.firebaseio.com/
 }//submitClick()
