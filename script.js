@@ -160,21 +160,7 @@
     }
   };
 
-  // Sets the URL of the given img element with the URL of the image stored in Cloud Storage.
-  WifiMap.prototype.setImageUrl = function(imageUri, imgElement) {
-    // If image is a Cloud Storage URI we fetch the URL.
-    if (imageUri.startsWith('gs://')) {
-      imgElement.src = WifiMap.LOADING_IMAGE_URL; // display a loading image first.
-      this.storage.refFromURL(imageUri).getMetadata().then(function(metadata) {
-        imgElement.src = metadata.downloadURLs[0];
-      });
-    } else {
-      imgElement.src = imageUri;
-    }
-  };
-
-
-  // Signs-in wifimap.
+    // Signs-in wifimap.
   WifiMap.prototype.signIn = function() {
     // Sign in firebase using redirect auth with Google as the identity provider    
     var provider = new firebase.auth.GoogleAuthProvider();
@@ -322,39 +308,58 @@
 
   window.onload = function() {
     window.wifiMap = new WifiMap();
-//            var rootRef = firebase.database().ref().child("Locations");
-//      rootRef.on("child_added", snap => {
-//        //var latlng = snap.child("latlng").val();
-//        var latlng = snap.child("asheville").val();
-//        $("#testAppend").append(latlng);
-//      });
-
-
+    initMap(); 
       
-
-  
   };
 
 
 
 
 function pullLatLngs() {
-          
-   //this works, but does function twice for some reason...    
+          //   
    var rootRef = firebase.database().ref().child("messages");
 
    rootRef.on("child_added", snap => {
-     var name = snap.child("latlng").val();
-     //var email = snap.child("Email").val();
-     $("#testAppend").append("<tr><td>" + name + "</td><td>" +
+     var latlng = snap.child("latlng").val();
+     var streetAddress = snap.child("streetAddress").val();   
+     markerArray.push({address:streetAddress, location: latlng});
+       //console.log("Marker array contents: " + markerArray);
+     $("#testAppend").append("<tr><td>" + latlng + streetAddress + "</td><td>" +
                          "</td><td><button>Remove</button></td></tr>");
+       createMarker();
+       
    });
 };
 
 
 
 
+    function createMarker() {
+        //alert("createMarker function called");
+        var largeInfoWindow = new google.maps.InfoWindow();
+        var defaultIcon = makeMarkerIcon('FFF24');
+        for (var i = 0; i < markerArray.length; i++) {
+            //get position from markerArray
+            var position = markerArray[i].location;
+            var address = markerArray[i].address;
+            console.log("Position is: " + position);
+            console.log("Address is: " + address);
+        }
+    };//createMarker
 
+      // This function takes in a COLOR, and then creates a new marker
+      // icon of that color. The icon will be 21 px wide by 34 high, have an origin
+      // of 0, 0 and be anchored at 10, 34).
+      function makeMarkerIcon(markerColor) {
+        var markerImage = new google.maps.MarkerImage(
+          'http://chart.googleapis.com/chart?chst=d_map_spin&chld=1.15|0|'+ markerColor +
+          '|40|_|%E2%80%A2',
+          new google.maps.Size(21, 34),
+          new google.maps.Point(0, 0),
+          new google.maps.Point(10, 34),
+          new google.maps.Size(21,34));
+        return markerImage;
+      };
 
     function reverseGeocodeAddress(geocoder, resultsMap) {
         $('#message').empty();
@@ -379,8 +384,72 @@ function pullLatLngs() {
       
 
 
+        
+//        var asheville = {lat: 35.6, lng: -82.55};
+//        var erwin = {lat:35.6, lng:-82.63};
+//       
+        
+        //global array var for all the markers    
+       var markers = []; 
+        //**********************************    
+        var map;
+    
+        var locations = [];    
+        var point = "";
+        var combined = [];
+    
+        var addressString = "";
+    
+        function initMap() {
+            
+        //constructor creates a new map - only center and zoom required.
+          map = new google.maps.Map(document.getElementById('map'), {
+          center: {lat: 35.6, lng: -82.55},
+          zoom: 14
+        });//initialize map var
+        var geocoder = new google.maps.Geocoder();
 
+            //and populate based on that markers position
+            function populateInfoWindow(marker, infowindow) {
+                //check to make sure the infowindow is not already opened on
+                //this marker
+                if (infowindow.marker != marker) {
+                    infowindow.marker = marker;
+                    infowindow.setContent('<div>' + marker.title + '</div>');
+                    infowindow.open(map, marker);
+                    //make sure the marker property is cleared if the infowindow 
+                    //is closed
+                    infowindow.addListener('closeclick', function() {
+                        infowindow.setMarker = null;
+                    });
+                }
+                
+            }//populateInfoWindow()
+            
+            //Add event listener for mouse clicks
+        google.maps.event.addListener(map, "click", function (event) {
+            var latitude = event.latLng.lat();
+            var longitude = event.latLng.lng();
+            locations.push(latitude);
+            locations.push(longitude);
+            point = "" +latitude +","+ longitude;
+            console.log("point is: " + point);
+            radius = new google.maps.Circle({map: map,
+                radius: 100,
+                center: event.latLng,
+                fillColor: '#777',
+                fillOpacity: 0.1,
+                strokeColor: '#AA0000',
+                strokeOpacity: 0.8,
+                strokeWeight: 2,
+                draggable: true,    // Dragable
+                editable: true      // Resizable
+            });
+            reverseGeocodeAddress(geocoder, map);
 
-      function addMarkers(geocoder, resultsMap) {
+            map.panTo(new google.maps.LatLng(latitude,longitude));
 
-      }
+        }); //end addListener
+            
+      }//initMap()
+  
