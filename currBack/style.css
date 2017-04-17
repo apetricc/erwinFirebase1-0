@@ -122,7 +122,8 @@ main {
   float: right;
 }
 #message-form .mdl-textfield {
-  width: calc(100% - 100px);
+  width: calc(100% - 120px);
+    
 }
 #message-form button, #image-form button {
   width: 100px;
@@ -163,6 +164,7 @@ main {
   padding-right: 10px;
   padding-left: 20px;
 }
+
 #image-form #submitImage {
   width: auto;
   padding: 0 6px 0 1px;
@@ -228,8 +230,9 @@ main {
       
 
       input {
-        font-size: 12px;
+        font-size: 1000px;
       }
+
 
       h1 {
         color: #525454;
@@ -283,4 +286,8 @@ body, html {
 
 div#content {
   width: 100%; height: 100%;
+}
+#message[type="text"]:disabled {
+    background: #f1ffff;
+    color: red;
 }

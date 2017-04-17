@@ -28,7 +28,9 @@
     this.messageForm = document.getElementById('message-form');
     this.messageInput = document.getElementById('message');
     this.submitButton = document.getElementById('submit');
-    
+    //could also disable the messageInput div, but then text is greyed out which is only an aesthetic concern
+    this.messageInput.disabled = "true";
+    //this.messageInput.setAttribute = ("editable", "false");
     this.userPic = document.getElementById('user-pic');
     this.userName = document.getElementById('user-name');
     this.signInButton = document.getElementById('sign-in');
@@ -61,7 +63,13 @@
     this.auth.onAuthStateChanged(this.onAuthStateChanged.bind(this));
 
   };
+  //*********************************************************************************************
+  //loads locations to the map and listens for new ones.
+  WifiMap.prototype.loadLocations = function() {
 
+      pullLatLngs();
+  };//loadLocations()
+  
   // Loads chat messages history and listens for upcoming ones.
   WifiMap.prototype.loadMessages = function() {
     // Reference to the /messages/ database path.
@@ -73,88 +81,95 @@
     // Loads the last 12 messages and listens for new ones.
     var setMessage = function(data) {
       var val = data.val();
-      this.displayMessage(data.key, val.name, val.text, val.photoUrl, val.imageUrl);
+      this.displayMessage(data.key, val.name, val.streetAddress, val.photoUrl, val.imageUrl);
     }.bind(this);
     this.messagesRef.limitToLast(12).on('child_added', setMessage);
     this.messagesRef.limitToLast(12).on('child_changed', setMessage);
   };
-  //*********************************************************************************************
-  //loads locations to the map and listens for new ones.
-  WifiMap.prototype.loadLocations = function() {
-      //reference the /messages/ database path
-      this.locationsRef = this.database.ref().child('Locations');
-      alert("This is what's in locationsRef" + this.locationsRef.val());
 
 
 
-      //remove any event listeners on those messages
-      //this.locationsRef.off();
+  // Displays a Message in the UI.
+  WifiMap.prototype.displayMessage = function(key, name, text, picUrl, imageUri) {
+    var div = document.getElementById(key);
+    // If an element for that message does not exists yet we create it.
+    if (!div) {
+      var container = document.createElement('div');
+      container.innerHTML = WifiMap.MESSAGE_TEMPLATE;
+      div = container.firstChild;
+      div.setAttribute('id', key);
+      this.messageList.appendChild(div);
+    }
+    if (picUrl) {
+      div.querySelector('.pic').style.backgroundImage = 'url(' + picUrl + ')';
+    }
+    div.querySelector('.name').textContent = name;
+    var messageElement = div.querySelector('.message');
+    if (text) { // If the message is text.
+      messageElement.textContent = text;
+      // Replace all line breaks by <br>.
+      messageElement.innerHTML = messageElement.innerHTML.replace(/\n/g, '<br>');
+    } else if (imageUri) { // If the message is an image.
+      var image = document.createElement('img');
+      image.addEventListener('load', function() {
+        this.messageList.scrollTop = this.messageList.scrollHeight;
+      }.bind(this));
+      this.setImageUrl(imageUri, image);
+      messageElement.innerHTML = '';
+      messageElement.appendChild(image);
+    }
+    // Show the card fading-in.
+    setTimeout(function() {div.classList.add('visible')}, 1);
+    this.messageList.scrollTop = this.messageList.scrollHeight;
+    this.messageInput.focus();
+  };//displayMessage()
 
-  //     var rootRef = firebase.database().ref().child("Users");
-
-  // rootRef.on("child_added", snap => {
-  //   var name = snap.child("Name").val();
-  //   var email = snap.child("Email").val();
-  //   $("#table_body").append("<tr><td>" + name + "</td><td>" + email +
-  //                       "</td><td><button>Remove</button></td></tr>");
-  // });
+  //****************************************************************************************************
+  //display locations in the UI
+  WifiMap.prototype.displayLocation = function() {
+    alert("display location");
+  }
 
 
 
 
-      //load all the messages as the locations they are to markers array
-      // var setLocation = function(data) {
-      //     var val = data.val();
-      //     this.displayLocation(data.key, val.name, val.text, val.photoUrl);
-      // }.bind(this);
-      // this.messagesRef.on('child_added', setLocation);
-      // this.messagesRef.on('child_changed', setLocation);
-  }//loadLocations()
-  // Saves a new message on the Firebase DB.
+
+  // Saves a new location on the Firebase DB.
   WifiMap.prototype.saveMessage = function(e) {
     e.preventDefault();
+    var streetAddress;
+    var latlng;
+    var locationInfo;
     // Check that the user entered a message and is signed in.
     if (this.messageInput.value && this.checkSignedInWithMessage()) {
+      locationInfo = (this.messageInput.value).split(";", 2);
+      streetAddress = locationInfo[0];
+      latlng = locationInfo[1];
       var currentUser = this.auth.currentUser;
       // Add a new message entry to the Firebase Database.
       this.messagesRef.push({
         name: currentUser.displayName,
-        text: this.messageInput.value,
+        streetAddress: streetAddress,
+        latlng: latlng,  
         photoUrl: currentUser.photoURL || '../images/profile_placeholder.png'
       }).then(function() {
         //clear message text field and SEND button state.
         WifiMap.resetMaterialTextfield(this.messageInput);
-        this.toggleButton();
+        //this.toggleButton();
       }.bind(this)).catch(function(error) {
         console.error('Error writing new message to Firebase Database.', error);
       });
     }
   };
 
-  // Sets the URL of the given img element with the URL of the image stored in Cloud Storage.
-  WifiMap.prototype.setImageUrl = function(imageUri, imgElement) {
-    // If image is a Cloud Storage URI we fetch the URL.
-    if (imageUri.startsWith('gs://')) {
-      imgElement.src = WifiMap.LOADING_IMAGE_URL; // display a loading image first.
-      this.storage.refFromURL(imageUri).getMetadata().then(function(metadata) {
-        imgElement.src = metadata.downloadURLs[0];
-      });
-    } else {
-      imgElement.src = imageUri;
-    }
-  };
-
-
-  // Signs-in Friendly Chat.
+    // Signs-in wifimap.
   WifiMap.prototype.signIn = function() {
-    // Sign in firebase using popup auth and Google as the identity provider,
-    //I would like to try using something that doesn't require a popup!!
+    // Sign in firebase using redirect auth with Google as the identity provider    
     var provider = new firebase.auth.GoogleAuthProvider();
     this.auth.signInWithRedirect(provider);
-    //this.auth.signInWithPopup(provider);
   };
 
-  // Signs-out of Friendly Chat.
+  // Signs-out of wifimap.
   WifiMap.prototype.signOut = function() {
     // Sign out of Firebase.
     this.auth.signOut();
@@ -164,8 +179,8 @@
   WifiMap.prototype.onAuthStateChanged = function(user) {
     if (user) { // User is signed in!
       // Get profile pic and user's name from the Firebase user object.
-      var profilePicUrl = user.photoURL;   // TODO(DEVELOPER): Get profile pic.
-      var userName = user.displayName;        // TODO(DEVELOPER): Get user's name.
+      var profilePicUrl = user.photoURL;   // Get profile pic.
+      var userName = user.displayName;        // Get user's name.
 
       // Set the user's profile pic and name.
       this.userPic.style.backgroundImage = 'url(' + profilePicUrl + ')';
@@ -179,7 +194,7 @@
       // Hide sign-in button.
       this.signInButton.setAttribute('hidden', 'true');
 
-      // We load currently existing chant messages.
+      // We load currently existing messages.
       this.loadMessages();
 
         //we load currently existing locations
@@ -257,45 +272,6 @@
   // A loading image URL.
   WifiMap.LOADING_IMAGE_URL = 'https://www.google.com/images/spin-32.gif';
 
-  // Displays a Message in the UI.
-  WifiMap.prototype.displayMessage = function(key, name, text, picUrl, imageUri) {
-    var div = document.getElementById(key);
-    // If an element for that message does not exists yet we create it.
-    if (!div) {
-      var container = document.createElement('div');
-      container.innerHTML = WifiMap.MESSAGE_TEMPLATE;
-      div = container.firstChild;
-      div.setAttribute('id', key);
-      this.messageList.appendChild(div);
-    }
-    if (picUrl) {
-      div.querySelector('.pic').style.backgroundImage = 'url(' + picUrl + ')';
-    }
-    div.querySelector('.name').textContent = name;
-    var messageElement = div.querySelector('.message');
-    if (text) { // If the message is text.
-      messageElement.textContent = text;
-      // Replace all line breaks by <br>.
-      messageElement.innerHTML = messageElement.innerHTML.replace(/\n/g, '<br>');
-    } else if (imageUri) { // If the message is an image.
-      var image = document.createElement('img');
-      image.addEventListener('load', function() {
-        this.messageList.scrollTop = this.messageList.scrollHeight;
-      }.bind(this));
-      this.setImageUrl(imageUri, image);
-      messageElement.innerHTML = '';
-      messageElement.appendChild(image);
-    }
-    // Show the card fading-in.
-    setTimeout(function() {div.classList.add('visible')}, 1);
-    this.messageList.scrollTop = this.messageList.scrollHeight;
-    this.messageInput.focus();
-  };
-  //****************************************************************************************************
-  //display locations in the UI
-  WifiMap.prototype.displayLocation = function() {
-    alert("display location");
-  }
 
 
 
@@ -305,9 +281,10 @@
 
 
 
-  // Enables or disables the submit button depending on the values of the input
-  // fields.
-  //if (this.messageInput.value) {
+
+  // Enables or disables the submit button depending on the values of the 
+  // input fields.
+  
   WifiMap.prototype.toggleButton = function() {
     if (true) {
       this.submitButton.removeAttribute('disabled');
@@ -330,12 +307,92 @@
           'displayed there.');
     }
   };
+//
+//  window.onload = function() {
+//    window.wifiMap = new WifiMap();
+//    initMap(); 
+//      
+//  };
 
-  window.onload = function() {
-    window.wifiMap = new WifiMap();
-  };
-//WifiMap.prototype.displayLocation();
-      function reverseGeocodeAddress(geocoder, resultsMap) {
+
+
+
+//function pullLatLngs() {
+//          //   
+//   var rootRef = firebase.database().ref().child("messages");
+//
+//   rootRef.on("child_added", snap => {
+//     var latlng = snap.child("latlng").val();
+//     var streetAddress = snap.child("streetAddress").val();   
+//     markerArray.push({address:streetAddress, location: latlng});
+//       //console.log("Marker array contents: " + markerArray);
+//     $("#testAppend").append("<tr><td>" + latlng + streetAddress + "</td><td>" +
+//                         "</td><td><button>Remove</button></td></tr>");
+//       createMarker();
+//       
+//   });
+//};
+
+function pullLatLngs() { 
+   var rootRef = firebase.database().ref().child("messages");
+   var str = "";
+    var lat = "";
+    var lng = "";
+    var formattedLatLng = "";
+   rootRef.on("child_added", snap => {
+     var latlng = snap.child("latlng").val();
+     var streetAddress = snap.child("streetAddress").val();   
+     lat = latlng.substring(latlng.indexOf('(', 0) + 1, latlng.indexOf(',', 0));
+     lng = latlng.substring(latlng.indexOf(',', 0) + 1, latlng.indexOf(')', 0));
+     formattedLatLng = "{" + lat + "," + lng + "}";
+     markerArray.push({location: formattedLatLng});
+
+   });
+    initMap();
+};
+
+
+    function createMarker() {
+        //alert("createMarker function called");
+        var largeInfoWindow = new google.maps.InfoWindow();
+        var defaultIcon = makeMarkerIcon('FFF24');
+        for (var i = 0; i < markerArray.length; i++) {
+            //get position from markerArray
+            var position = markerArray[i].location;
+            var address = markerArray[i].address;
+            console.log("Position is: " + position);
+            console.log("Address is: " + address);
+            console.log("Geocoder gives: " + geocoder.geocode(address));
+        }
+    };//createMarker
+
+      // This function takes in a COLOR, and then creates a new marker
+      // icon of that color. The icon will be 21 px wide by 34 high, have an origin
+      // of 0, 0 and be anchored at 10, 34).
+      function makeMarkerIcon(markerColor) {
+        var markerImage = new google.maps.MarkerImage(
+          'http://chart.googleapis.com/chart?chst=d_map_spin&chld=1.15|0|'+ markerColor +
+          '|40|_|%E2%80%A2',
+          new google.maps.Size(21, 34),
+          new google.maps.Point(0, 0),
+          new google.maps.Point(10, 34),
+          new google.maps.Size(21,34));
+        return markerImage;
+      };
+
+
+
+
+
+//*************
+//*************
+//*************
+//******************************************************************************
+//*************
+//function to get street address from lat lng coordinates
+    function reverseGeocodeAddress(geocoder, resultsMap) {
+        window.wifiMap.messageInput.disabled = "false";
+        
         $('#message').empty();
         var address = "";  
         geocoder.geocode({'address': point}, function(results, status) {
@@ -344,28 +401,108 @@
             resultsMap.setCenter(results[0].geometry.location);
 
               addressString = results[0].formatted_address;
-              //alert(results[0].geometry.location);
+              
               console.log("This is what's in the addressString var: " + addressString);
               addressNode = document.createTextNode(addressString);
               
               $('#message').val(addressString + "; \n" + results[0].geometry.location);
-              //document.getElementById("message").appendChild(addressNode);
-              // $('#testAppend').empty();
-              // $('#testAppend').append(addressNode);
+              
           } else {
             alert('Geocode was not successful for the following reason: ' + status);
           }
         });
-      }//reverseGeocodeAddress()  
-      WifiMap.prototype.loadLocations();      
-      function gatherLocations() {
-        alert("gathering locations");
-      }
+        window.wifiMap.messageInput.disabled = "true";
+      };//reverseGeocodeAddress()  
+      
+    function geocodeAddress(geocoder, resultsMap) {
+      var readableAddress = markerArray[0].streetAddress;
+        var geocoder1 = new google.maps.Geocoder();
+        console.log("geocodeAddress starts with this: " + geocoder1.geocode(readableAddress));
+    };
+
+        
+//        var asheville = {lat: 35.6, lng: -82.55};
+//        var erwin = {lat:35.6, lng:-82.63};
+//       
+        
+        //global array var for all the markers    
+       var markers = []; 
+        //**********************************    
+        var map;
+    
+        var locations = [];    
+        var point = "";
+        var combined = [];
+    
+        var addressString = "";
+    
+    function initMap() {
+        console.log("Marker array is this long from initmap: " + markerArray.length);
+        //constructor creates a new map - only center and zoom required.
+          map = new google.maps.Map(document.getElementById('map'), {
+          center: {lat: 35.6, lng: -82.55},
+          zoom: 14
+        });//initialize map var
+        var geocoder = new google.maps.Geocoder();
+        
+        var asheville = {lat: 35.5946531, lng: -82.55577770000002};
+        var marker = new google.maps.Marker({
+          position: asheville,
+          map: map,
+          title: 'First Marker!'
+        });
+        
+        
+            //and populate based on that markers position
+            function populateInfoWindow(marker, infowindow) {
+                //check to make sure the infowindow is not already opened on
+                //this marker
+                if (infowindow.marker != marker) {
+                    infowindow.marker = marker;
+                    infowindow.setContent('<div>' + marker.title + '</div>');
+                    infowindow.open(map, marker);
+                    //make sure the marker property is cleared if the infowindow 
+                    //is closed
+                    infowindow.addListener('closeclick', function() {
+                        infowindow.setMarker = null;
+                    });
+     }
+                
+            }//populateInfoWindow()
+            
+            //Add event listener for mouse clicks
+        google.maps.event.addListener(map, "click", function (event) {
+            var latitude = event.latLng.lat();
+            var longitude = event.latLng.lng();
+            locations.push(latitude);
+            locations.push(longitude);
+            point = "" +latitude +","+ longitude;
+            console.log("point is: " + point);
+            radius = new google.maps.Circle({map: map,
+                        radius: 15,
+                        center: event.latLng,
+                        fillColor: '#717',
+                        fillOpacity: 0.3,
+                        strokeColor: '#AA0000',
+                        strokeOpacity: 0.5,
+                        strokeWeight: 2,
+            });
+            reverseGeocodeAddress(geocoder, map);
+
+            map.panTo(new google.maps.LatLng(latitude,longitude));
+
+        }); //end addListener
+            
+      }//initMap()
 
 
 
+  window.onload = function() {
+    
+    window.wifiMap = new WifiMap();
+    pullLatLngs();
+    
 
-
-      function addMarkers(geocoder, resultsMap) {
-
-      }
+      
+  };
+  
