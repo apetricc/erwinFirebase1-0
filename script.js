@@ -329,25 +329,30 @@ function pullLatLngs() {
      lat = latlng.substring(latlng.indexOf('(', 0) + 1, latlng.indexOf(',', 0));
      lng = latlng.substring(latlng.indexOf(',', 0) + 1, latlng.indexOf(')', 0));
      formattedLatLng = "{" + lat + "," + lng + "}";
-     markerArray.push({location: formattedLatLng});
-
-   });
+     markerArray.push({location: formattedLatLng, address: streetAddress});
+       console.log("child added: " + formattedLatLng);
+     // The following group uses the location array to create an array of markers on initialize.
+      //createMarker(map, markerArray.pop().streetAddress);
+       codeAddress(streetAddress);
+   });//on child_added
     initMap();
 };
 
 
-    function createMarker() {
+
+
+
+
+    function createMarker(map, location) {
         //alert("createMarker function called");
-        var largeInfoWindow = new google.maps.InfoWindow();
-        var defaultIcon = makeMarkerIcon('FFF24');
-        for (var i = 0; i < markerArray.length; i++) {
-            //get position from markerArray
-            var position = markerArray[i].location;
-            var address = markerArray[i].address;
-            console.log("Position is: " + position);
-            console.log("Address is: " + address);
-            console.log("Geocoder gives: " + geocoder.geocode(address));
-        }
+        console.log("Adding marker to this location: " + codeAddress(location));
+        var marker = new google.maps.Marker({
+           map: map,
+            position: codeAddress(location),
+            title: "title",
+            animation: google.maps.Animation.DROP
+        });
+        markers.push(marker);
     };//createMarker
 
       // This function takes in a COLOR, and then creates a new marker
@@ -364,13 +369,23 @@ function pullLatLngs() {
         return markerImage;
       };
 
+  function codeAddress(address) {
+    var geocoder2 = new google.maps.Geocoder();
+    geocoder2.geocode( { 'address': address}, function(results, status) {
+      if (status == 'OK') {
+        map.setCenter(results[0].geometry.location);
+        var marker = new google.maps.Marker({
+            map: map,
+            position: results[0].geometry.location
+        });
+      } else {
+        console.log('Geocode error for the following reason: ' + status);
+      }
+    });
+  }
 
 
 
-
-//*************
-//*************
-//*************
 //******************************************************************************
 //*************
 //function to get street address from lat lng coordinates
@@ -398,9 +413,9 @@ function pullLatLngs() {
         window.wifiMap.messageInput.disabled = "true";
       };//reverseGeocodeAddress()  
       
-    function geocodeAddress(geocoder, resultsMap) {
-      var readableAddress = markerArray[0].streetAddress;
+    function geocodeAddress(address) {
         var geocoder1 = new google.maps.Geocoder();
+        
         console.log("geocodeAddress starts with this: " + geocoder1.geocode(readableAddress));
     };
 
@@ -413,7 +428,7 @@ function pullLatLngs() {
        var markers = []; 
         //**********************************    
         var map;
-    
+        
         var locations = [];    
         var point = "";
         var combined = [];
@@ -429,7 +444,9 @@ function pullLatLngs() {
           zoom: 14
         });//initialize map var
         var geocoder = new google.maps.Geocoder();
-        
+        var largeInfowindow = new google.maps.InfoWindow();
+        var bounds = new google.maps.LatLngBounds();
+
         var asheville = {lat: 35.5946531, lng: -82.55577770000002};
         var marker = new google.maps.Marker({
           position: asheville,
