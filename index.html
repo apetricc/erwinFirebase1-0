@@ -1,5 +1,14 @@
 <!doctype html>
 <!--
+    Erwin Wifi-Map; Created by Andrew Petriccione using Google Firebase & Google Maps API
+    works cited: Firebase Codelabs
+                 Udacity Google Maps Tutorials
+                 TVAC on YouTube for Firebase Database usage
+                 Firebase Firecasts on YouTube
+                 And Stack Overflow
+
+
+  Google Firebase copyright information:
   Copyright 2015 Google Inc. All rights reserved.
   Licensed under the Apache License, Version 2.0 (the "License");
   you may not use this file except in compliance with the License.
@@ -61,7 +70,7 @@
         <h3> Erwin Wifi Map 1-0</h3> 
       </div>
         <div id="testAppend">
-            <p>Click a location on map, then click the 'SAVE' button to save it to the database & add a marker.</p>
+            <p>Click a location on map, then click the 'SAVE' button to save it to the database and add a marker.</p>
         </div>
       <div id="user-container">
         <div hidden id="user-pic"></div>
@@ -72,18 +81,21 @@
         <button hidden id="sign-in" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-color-text--white">
           <i class="material-icons">account_circle</i>Sign-in with Google
         </button>
-          <button id="map-print">Print Map</button>
+          <button id="map-print" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-color-text--white">
+          Print Map
+        </button>
+          
 
         <script>
-               $('.map-print').on('click',
+               $('#map-print').on('click',
 
                 /*
-                 * Print dat maps!
+                 * Print map
                  */
                function printMaps() {
                   var body               = $('body');
-                  var mapContainer       = $('#map');
-                  var mapContainerParent = $('#map').parent();
+                  var mapContainer       = $('.map-container');
+                  var mapContainerParent = mapContainer.parent();
                   var printContainer     = $('<div>');
 
                   printContainer
@@ -116,7 +128,7 @@
 
 
 <!-- Div with id 'map' which is where the map will be displayed -->
-<div id="map"></div>
+<div class="map-container" id="map"></div>
 
     calling google maps API asyncronously
     <script async defer

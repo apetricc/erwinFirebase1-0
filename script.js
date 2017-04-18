@@ -14,11 +14,9 @@
  * limitations under the License.
  */
 
-
-
-
   var messageBox;
   var markerArray = [];
+
   // Initializes ErwinWifiMap.
   function WifiMap() {
     this.checkSetup();
@@ -28,9 +26,7 @@
     this.messageForm = document.getElementById('message-form');
     this.messageInput = document.getElementById('message');
     this.submitButton = document.getElementById('submit');
-    //could also disable the messageInput div, but then text is greyed out which is only an aesthetic concern
     this.messageInput.disabled = "true";
-    //this.messageInput.setAttribute = ("editable", "false");
     this.userPic = document.getElementById('user-pic');
     this.userName = document.getElementById('user-name');
     this.signInButton = document.getElementById('sign-in');
@@ -199,7 +195,7 @@
 
         //we load currently existing locations
         this.loadLocations();
-
+        
       // We save the Firebase Messaging Device token and enable notifications.
       this.saveMessagingDeviceToken();
     } else { // User is signed out!
@@ -335,7 +331,7 @@ function pullLatLngs() {
       //createMarker(map, markerArray.pop().streetAddress);
        codeAddress(streetAddress);
    });//on child_added
-    initMap();
+    //initMap();
 };
 
 
@@ -416,8 +412,7 @@ function pullLatLngs() {
 //       
         
         //global array var for all the markers    
-       var markers = []; 
-        //**********************************    
+        var markers = [];     
         var map;
         
         var locations = [];    
@@ -427,23 +422,23 @@ function pullLatLngs() {
         var addressString = "";
     
     function initMap() {
-        console.log("Marker array is this long from start of initmap: " + markerArray.length);
-
+        var erwin = {lat:35.618614, lng:-82.62656199999998};
+        var asheville = {lat: 35.5946531, lng: -82.55577770000002};
+        var image = 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png';
+        
         //constructor creates a new map - only center and zoom required.
           map = new google.maps.Map(document.getElementById('map'), {
-          center: {lat: 35.6, lng: -82.55},
-          zoom: 14
-        });//initialize map var
+              center: erwin,
+              zoom: 16
+          });//initialize map var
         var geocoder = new google.maps.Geocoder();
         var largeInfowindow = new google.maps.InfoWindow();
         var bounds = new google.maps.LatLngBounds();
-
-        var asheville = {lat: 35.5946531, lng: -82.55577770000002};
         var marker = new google.maps.Marker({
-          position: asheville,
-          color: 'yellow',
-          map: map,
-          title: 'Downtown Asheville'
+          position: erwin,
+          title: 'Erwin Middle School',
+          icon: image,
+          map: map
         });
         
         
@@ -460,7 +455,7 @@ function pullLatLngs() {
                     infowindow.addListener('closeclick', function() {
                         infowindow.setMarker = null;
                     });
-     }
+                }
                 
             }//populateInfoWindow()
             
@@ -473,10 +468,10 @@ function pullLatLngs() {
             point = "" +latitude +","+ longitude;
             console.log("point is: " + point);
             radius = new google.maps.Circle({map: map,
-                        radius: 15,
+                        radius: 20,
                         center: event.latLng,
                         fillColor: '#717',
-                        fillOpacity: 0.3,
+                        fillOpacity: 0.5,
                         strokeColor: '#AA0000',
                         strokeOpacity: 0.5,
                         strokeWeight: 2,
