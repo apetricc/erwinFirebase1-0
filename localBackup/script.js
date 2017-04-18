@@ -1,4 +1,8 @@
 /**
+  Code written and adapted by Andrew Petriccione
+  University of North Carolina Asheville Spring 2017
+  For Computer Science Senior Project 
+  Google/Firebase copyright information:
  * Copyright 2015 Google Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,14 +18,11 @@
  * limitations under the License.
  */
 
-
-
-
   var messageBox;
   var markerArray = [];
+
   // Initializes ErwinWifiMap.
   function WifiMap() {
-    
     this.checkSetup();
 
     // Shortcuts to DOM Elements.
@@ -29,9 +30,7 @@
     this.messageForm = document.getElementById('message-form');
     this.messageInput = document.getElementById('message');
     this.submitButton = document.getElementById('submit');
-    //could also disable the messageInput div, but then text is greyed out which is only an aesthetic concern
     this.messageInput.disabled = "true";
-    //this.messageInput.setAttribute = ("editable", "false");
     this.userPic = document.getElementById('user-pic');
     this.userName = document.getElementById('user-name');
     this.signInButton = document.getElementById('sign-in');
@@ -50,7 +49,7 @@
 
     this.messageInput.addEventListener('change', buttonTogglingHandler);
 
-    this.initMap();  
+
     this.initFirebase();
   }
 
@@ -65,8 +64,12 @@
 
   };
 
+  //loads locations to the map and listens for new ones.
+  WifiMap.prototype.loadLocations = function() {
+      pullLatLngs();
+  };//loadLocations()
   
-  // Loads chat messages history and listens for upcoming ones.
+  // Loads location/message history and listens for upcoming ones.
   WifiMap.prototype.loadMessages = function() {
     // Reference to the /messages/ database path.
     this.messagesRef = this.database.ref('messages');
@@ -83,9 +86,7 @@
     this.messagesRef.limitToLast(12).on('child_changed', setMessage);
   };
 
-
-
-  // Displays a Message in the UI.
+  // Displays a previously saved location/Message in the UI.
   WifiMap.prototype.displayMessage = function(key, name, text, picUrl, imageUri) {
     var div = document.getElementById(key);
     // If an element for that message does not exists yet we create it.
@@ -126,11 +127,7 @@
     alert("display location");
   }
 
-
-
-
-
-  // Saves a new location on the Firebase DB.
+  // Saves a new message/location on the Firebase DB.
   WifiMap.prototype.saveMessage = function(e) {
     e.preventDefault();
     var streetAddress;
@@ -193,7 +190,9 @@
       // We load currently existing messages.
       this.loadMessages();
 
-
+        //we load currently existing locations
+        this.loadLocations();
+        
       // We save the Firebase Messaging Device token and enable notifications.
       this.saveMessagingDeviceToken();
     } else { // User is signed out!
@@ -266,16 +265,6 @@
   // A loading image URL.
   WifiMap.LOADING_IMAGE_URL = 'https://www.google.com/images/spin-32.gif';
 
-
-
-
-
-
-
-
-
-
-
   // Enables or disables the submit button depending on the values of the 
   // input fields.
   
@@ -311,23 +300,7 @@
 
 
 
-//function pullLatLngs() {
-//          //   
-//   var rootRef = firebase.database().ref().child("messages");
-//
-//   rootRef.on("child_added", snap => {
-//     var latlng = snap.child("latlng").val();
-//     var streetAddress = snap.child("streetAddress").val();   
-//     markerArray.push({address:streetAddress, location: latlng});
-//       //console.log("Marker array contents: " + markerArray);
-//     $("#testAppend").append("<tr><td>" + latlng + streetAddress + "</td><td>" +
-//                         "</td><td><button>Remove</button></td></tr>");
-//       createMarker();
-//       
-//   });
-//};
-
-WifiMap.prototype.pullLatLngs = function() { 
+function pullLatLngs() { 
    var rootRef = firebase.database().ref().child("messages");
    var str = "";
     var lat = "";
@@ -339,27 +312,30 @@ WifiMap.prototype.pullLatLngs = function() {
      lat = latlng.substring(latlng.indexOf('(', 0) + 1, latlng.indexOf(',', 0));
      lng = latlng.substring(latlng.indexOf(',', 0) + 1, latlng.indexOf(')', 0));
      formattedLatLng = "{" + lat + "," + lng + "}";
-     markerArray.push({location: formattedLatLng});
-
-   });
-//    for (var i = 0; i < this.markerArray.length; i++) {
-//        console.log("From pullLatLngs()--> Location " + i +" is: " + this.array[i].location);
-//    }
+     markerArray.push({location: formattedLatLng, address: streetAddress});
+       console.log("child added: " + formattedLatLng);
+     // The following group uses the location array to create an array of markers on initialize.
+      //createMarker(map, markerArray.pop().streetAddress);
+       codeAddress(streetAddress);
+   });//on child_added
+    //initMap();
 };
 
 
-    function createMarker() {
+
+
+
+
+    function createMarker(map, location) {
         //alert("createMarker function called");
-        var largeInfoWindow = new google.maps.InfoWindow();
-        var defaultIcon = makeMarkerIcon('FFF24');
-        for (var i = 0; i < markerArray.length; i++) {
-            //get position from markerArray
-            var position = markerArray[i].location;
-            var address = markerArray[i].address;
-            console.log("Position is: " + position);
-            console.log("Address is: " + address);
-            console.log("Geocoder gives: " + geocoder.geocode(address));
-        }
+        console.log("Adding marker to this location: " + codeAddress(location));
+        var marker = new google.maps.Marker({
+           map: map,
+            position: codeAddress(location),
+            title: "title",
+            animation: google.maps.Animation.DROP
+        });
+        markers.push(marker);
     };//createMarker
 
       // This function takes in a COLOR, and then creates a new marker
@@ -375,16 +351,23 @@ WifiMap.prototype.pullLatLngs = function() {
           new google.maps.Size(21,34));
         return markerImage;
       };
+//function that geocodes an address to a latlng value the Google Maps API can use.
+  function codeAddress(address) {
+    var geocoder2 = new google.maps.Geocoder();
+    geocoder2.geocode( { 'address': address}, function(results, status) {
+      if (status == 'OK') {
+        map.setCenter(results[0].geometry.location);
+        var marker = new google.maps.Marker({
+            map: map,
+            position: results[0].geometry.location
+        });
+      } else {
+        console.log('Geocode error for the following reason: ' + status);
+      }
+    });
+  }
 
 
-
-
-
-//*************
-//*************
-//*************
-//******************************************************************************
-//*************
 //function to get street address from lat lng coordinates
     function reverseGeocodeAddress(geocoder, resultsMap) {
         window.wifiMap.messageInput.disabled = "false";
@@ -402,80 +385,45 @@ WifiMap.prototype.pullLatLngs = function() {
               addressNode = document.createTextNode(addressString);
               
               $('#message').val(addressString + "; \n" + results[0].geometry.location);
-                        } else {
+              
+          } else {
             alert('Geocode was not successful for the following reason: ' + status);
           }
         });
         window.wifiMap.messageInput.disabled = "true";
       };//reverseGeocodeAddress()  
-      
-    function geocodeAddress(geocoder, resultsMap) {
-      var readableAddress = markerArray[0].streetAddress;
-        var geocoder1 = new google.maps.Geocoder();
-        console.log("geocodeAddress starts with this: " + geocoder1.geocode(readableAddress));
-    };
 
         
-
-//        var erwin = {lat:35.6, lng:-82.63}; 
-            
+        //global array var for all the markers    
+        var markers = [];     
+        var map;
         
-    //not sure I need these vars strictly speaking...
         var locations = [];    
         var point = "";
         var combined = [];
-        
-
-        var map;
+    
         var addressString = "";
+    
+    function initMap() {
+        var erwin = {lat:35.618614, lng:-82.62656199999998};
         var asheville = {lat: 35.5946531, lng: -82.55577770000002};
-        var markers = [];
-    WifiMap.prototype.initMap = function() {
-            //constructor creates a new map - only center and zoom required.
-              map = new google.maps.Map(document.getElementById('map'), {
-              center: asheville,
-              zoom: 17
-            });//initialize map var
-
-            var geocoder = new google.maps.Geocoder();
-
-
-            var centerMarker = new google.maps.Marker({
-              position: asheville,
-              map: map,
-              title: "Asheville Downtown",
-              animation: google.maps.Animation.DROP,
-              title: 'Downtown Asheville'
-            });
-            
-            var largeInfoWindow = new google.maps.InfoWindow();
-            var bounds = new google.maps.LatLngBounds();
+        var image = 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png';
         
+        //constructor creates a new map - only center and zoom required.
+          map = new google.maps.Map(document.getElementById('map'), {
+              center: erwin,
+              zoom: 15
+          });//initialize map var
+        var geocoder = new google.maps.Geocoder();
+        var largeInfowindow = new google.maps.InfoWindow();
+        var bounds = new google.maps.LatLngBounds();
+        var marker = new google.maps.Marker({
+          position: erwin,
+          title: 'Erwin Middle School',
+          icon: image,
+          map: map
+        });
         
-            //Use markerArray contents to create an array of markers on initialize
-            for (var i = 0; i < markerArray.length; i++) {
-                  // Get the position from the markerArray array.
-                  var position = WifiMap.markerArray[i].location;
-                  var title = WifiMap.markerArray[i].streetAddress;
-                  // Create a marker per location, and put into markers array.
-                  var marker = new google.maps.Marker({
-                    map: map,
-                    position: position,
-                    title: title,
-                    animation: google.maps.Animation.DROP,
-                    id: i
-                  });
-                  // Push the marker to our array of markers.
-                  markers.push(marker);
-                  // Create an onclick event to open an infowindow at each marker.
-                  marker.addListener('click', function() {
-                    populateInfoWindow(this, largeInfowindow);
-                  });
-                  bounds.extend(markers[i].position);
-            }
-        // Extend the boundaries of the map for each marker
-        //map.fitBounds(bounds);
-            
         
             //and populate based on that markers position
             function populateInfoWindow(marker, infowindow) {
@@ -489,45 +437,43 @@ WifiMap.prototype.pullLatLngs = function() {
                     //is closed
                     infowindow.addListener('closeclick', function() {
                         infowindow.setMarker = null;
-                    });//infowindow.addListener()
-                }//if infowindow not already on marker
+                    });
+                }
                 
             }//populateInfoWindow()
             
-            //Add event listener for mouse clicks & get the coordinates
-            google.maps.event.addListener(map, "click", function (event) {
-                var latitude = event.latLng.lat();
-                var longitude = event.latLng.lng();
-                locations.push(latitude);
-                locations.push(longitude);
-                point = "" +latitude +","+ longitude;
-                console.log("point is: " + point);
-                console.log("locations array has: " + locations);
-                radius = new google.maps.Circle({map: map,
-                    radius: 15,
-                    center: event.latLng,
-                    fillColor: '#f1f',
-                    fillOpacity: 0.3,
-                    strokeColor: '#AA0000',
-                    strokeOpacity: 0.8,
-                    strokeWeight: .5
-    //                draggable: false,    // Dragable
-    //                editable: false      // Resizable
-                });
-                reverseGeocodeAddress(geocoder, map);
+            //Add event listener for mouse clicks
+        google.maps.event.addListener(map, "click", function (event) {
+            var latitude = event.latLng.lat();
+            var longitude = event.latLng.lng();
+            locations.push(latitude);
+            locations.push(longitude);
+            point = "" +latitude +","+ longitude;
+            console.log("point is: " + point);
+            radius = new google.maps.Circle({map: map,
+                        radius: 20,
+                        center: event.latLng,
+                        fillColor: '#717',
+                        fillOpacity: 0.5,
+                        strokeColor: '#AA0000',
+                        strokeOpacity: 0.5,
+                        strokeWeight: 2,
+            });
+            reverseGeocodeAddress(geocoder, map);
 
-                map.panTo(new google.maps.LatLng(latitude,longitude));
+            map.panTo(new google.maps.LatLng(latitude,longitude));
 
-            }); //end addListener
+        }); //end addListener
             
       }//initMap()
 
 
 
   window.onload = function() {
+    
     window.wifiMap = new WifiMap();
-    //wifiMap.pullLatLngs(WifiMap.markerArray);
-    //initMap();
-
+    window.initMap(function() {
+      pullLatLngs();  
+    });
       
   };  
