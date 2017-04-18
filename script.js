@@ -1,4 +1,8 @@
 /**
+  Code written and adapted by Andrew Petriccione
+  University of North Carolina Asheville Spring 2017
+  For Computer Science Senior Project 
+  Google/Firebase copyright information:
  * Copyright 2015 Google Inc. All Rights Reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -59,14 +63,13 @@
     this.auth.onAuthStateChanged(this.onAuthStateChanged.bind(this));
 
   };
-  //*********************************************************************************************
+
   //loads locations to the map and listens for new ones.
   WifiMap.prototype.loadLocations = function() {
-
       pullLatLngs();
   };//loadLocations()
   
-  // Loads chat messages history and listens for upcoming ones.
+  // Loads location/message history and listens for upcoming ones.
   WifiMap.prototype.loadMessages = function() {
     // Reference to the /messages/ database path.
     this.messagesRef = this.database.ref('messages');
@@ -83,9 +86,7 @@
     this.messagesRef.limitToLast(12).on('child_changed', setMessage);
   };
 
-
-
-  // Displays a Message in the UI.
+  // Displays a previously saved location/Message in the UI.
   WifiMap.prototype.displayMessage = function(key, name, text, picUrl, imageUri) {
     var div = document.getElementById(key);
     // If an element for that message does not exists yet we create it.
@@ -126,11 +127,7 @@
     alert("display location");
   }
 
-
-
-
-
-  // Saves a new location on the Firebase DB.
+  // Saves a new message/location on the Firebase DB.
   WifiMap.prototype.saveMessage = function(e) {
     e.preventDefault();
     var streetAddress;
@@ -268,16 +265,6 @@
   // A loading image URL.
   WifiMap.LOADING_IMAGE_URL = 'https://www.google.com/images/spin-32.gif';
 
-
-
-
-
-
-
-
-
-
-
   // Enables or disables the submit button depending on the values of the 
   // input fields.
   
@@ -405,11 +392,7 @@ function pullLatLngs() {
         });
         window.wifiMap.messageInput.disabled = "true";
       };//reverseGeocodeAddress()  
-      
-            
-//        var asheville = {lat: 35.6, lng: -82.55};
-//        var erwin = {lat:35.6, lng:-82.63};
-//       
+
         
         //global array var for all the markers    
         var markers = [];     
@@ -429,7 +412,7 @@ function pullLatLngs() {
         //constructor creates a new map - only center and zoom required.
           map = new google.maps.Map(document.getElementById('map'), {
               center: erwin,
-              zoom: 16
+              zoom: 15
           });//initialize map var
         var geocoder = new google.maps.Geocoder();
         var largeInfowindow = new google.maps.InfoWindow();
@@ -493,10 +476,4 @@ function pullLatLngs() {
       pullLatLngs();  
     });
       
-  };
-//
-//$(function() {
-//    pullLatLngs()
-//   initMap(); 
-//});
-  
+  };  
