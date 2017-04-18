@@ -368,7 +368,7 @@ function pullLatLngs() {
           new google.maps.Size(21,34));
         return markerImage;
       };
-
+//function that geocodes an address to a latlng value the Google Maps API can use.
   function codeAddress(address) {
     var geocoder2 = new google.maps.Geocoder();
     geocoder2.geocode( { 'address': address}, function(results, status) {
@@ -385,9 +385,6 @@ function pullLatLngs() {
   }
 
 
-
-//******************************************************************************
-//*************
 //function to get street address from lat lng coordinates
     function reverseGeocodeAddress(geocoder, resultsMap) {
         window.wifiMap.messageInput.disabled = "false";
@@ -413,13 +410,7 @@ function pullLatLngs() {
         window.wifiMap.messageInput.disabled = "true";
       };//reverseGeocodeAddress()  
       
-    function geocodeAddress(address) {
-        var geocoder1 = new google.maps.Geocoder();
-        
-        console.log("geocodeAddress starts with this: " + geocoder1.geocode(readableAddress));
-    };
-
-        
+            
 //        var asheville = {lat: 35.6, lng: -82.55};
 //        var erwin = {lat:35.6, lng:-82.63};
 //       
@@ -450,8 +441,9 @@ function pullLatLngs() {
         var asheville = {lat: 35.5946531, lng: -82.55577770000002};
         var marker = new google.maps.Marker({
           position: asheville,
+          color: 'yellow',
           map: map,
-          title: 'First Marker!'
+          title: 'Downtown Asheville'
         });
         
         
