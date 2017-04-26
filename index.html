@@ -67,11 +67,17 @@
   <header class="mdl-layout__header mdl-color-text--white mdl-color--light-green-700">
     <div class="mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet mdl-grid">
       <div class="mdl-layout__header-row mdl-cell mdl-cell--12-col mdl-cell--12-col-tablet mdl-cell--12-col-desktop">
-        <h3> Erwin Wifi Map 1-0</h3> 
+        
+          
+          
+              <script>
+                alert("Click the map to select a location, then click the \"SAVE\" button to submit location to database.");
+              </script>
+              
+          
+
       </div>
-        <div id="testAppend">
-            <p>Click a location on map, then click the 'SAVE' button to save it to the database and add a marker.</p>
-        </div>
+        
       <div id="user-container">
         <div hidden id="user-pic"></div>
         <div hidden id="user-name"></div>
@@ -84,42 +90,6 @@
           <button id="map-print" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-color-text--white">
           Print Map
         </button>
-          
-
-        <script>
-               $('#map-print').on('click',
-
-                /*
-                 * Print map
-                 */
-               function printMaps() {
-                  var body               = $('body');
-                  var mapContainer       = $('.map-container');
-                  var mapContainerParent = mapContainer.parent();
-                  var printContainer     = $('<div>');
-
-                  printContainer
-                    .addClass('print-container')
-                    .css('position', 'relative')
-                    .height(mapContainer.height())
-                    .append(mapContainer)
-                    .prependTo(body);
-
-                  var content = body
-                    .children()
-                    .not('script')
-                    .not(printContainer)
-                    .detach();
-
-                  window.print();
-
-                  body.prepend(content);
-                  mapContainerParent.prepend(mapContainer);
-
-                  printContainer.remove();
-                  patchedStyle.remove();
-                });
-        </script>
       </div>
     </div>
   </header>
@@ -130,24 +100,10 @@
 <!-- Div with id 'map' which is where the map will be displayed -->
 <div class="map-container" id="map"></div>
 
-    calling google maps API asyncronously
+<!--    calling google maps API asyncronously-->
     <script async defer
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA_LU1gytLu1Z-VXx4bsvXF0l6mhrsVzXE&callback=initMap">
     </script>
-      
-<!--      calling google maps sync-->
-<!--
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA_LU1gytLu1Z-VXx4bsvXF0l6mhrsVzXE">
-    </script>
--->
-
-<!-- end map code -->
-
-
-
-
-
-
     
     <div id="messages-card-container" class="mdl-cell mdl-cell--12-col mdl-grid">
 
@@ -195,7 +151,7 @@
 </script>
 
 
-
+<!--link to script file for wifi map-->
 
 <script src="script.js"></script>
 </body>

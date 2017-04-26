@@ -19,13 +19,43 @@
  */
 
   var messageBox;
-  var markerArray = [];
+  var markerArray = [];   
+  var markers = [];     
+  var map;
+  var locations = [];    
+  var point = "";
+  var addressString = "";
 
   // Initializes ErwinWifiMap.
   function WifiMap() {
     this.checkSetup();
 
-    // Shortcuts to DOM Elements.
+    //simple print function 
+    this.print = document.getElementById('map-print');        
+               $('#map-print').on('click',
+               function printMaps() {
+                  var body               = $('body');
+                  var mapContainer       = $('.map-container');
+                  var mapContainerParent = mapContainer.parent();
+                  var printContainer     = $('<div>');
+                  printContainer
+                    .addClass('print-container')
+                    .css('position', 'relative')
+                    .height(mapContainer.height())
+                    .append(mapContainer)
+                    .prependTo(body);
+                  var content = body
+                    .children()
+                    .not('script')
+                    .not(printContainer)
+                    .detach();
+                  window.print();
+                  body.prepend(content);
+                  mapContainerParent.prepend(mapContainer);
+                  printContainer.remove();
+                  patchedStyle.remove();
+                });     
+    // Shortcuts to DOM Elements. 
     this.messageList = document.getElementById('messages');
     this.messageForm = document.getElementById('message-form');
     this.messageInput = document.getElementById('message');
@@ -38,20 +68,16 @@
     this.signInSnackbar = document.getElementById('must-signin-snackbar');
 
     // Saves message on form submit.
-    //currently using mouseover event to reenable submit button
     this.messageForm.addEventListener('submit', this.saveMessage.bind(this));
     this.signOutButton.addEventListener('click', this.signOut.bind(this));
     this.signInButton.addEventListener('click', this.signIn.bind(this));
 
-    // Toggle for the button.
+    // Toggle for the button which is locked on enabled for now
     var buttonTogglingHandler = this.toggleButton.bind(this);
     buttonTogglingHandler();
-
     this.messageInput.addEventListener('change', buttonTogglingHandler);
-
-
     this.initFirebase();
-  }
+  }//WifiMap()
 
   // Sets up shortcuts to Firebase features and initiate firebase auth.
   WifiMap.prototype.initFirebase = function() {
@@ -62,7 +88,7 @@
     //initiates firebase auth and listen to auth state changes.
     this.auth.onAuthStateChanged(this.onAuthStateChanged.bind(this));
 
-  };
+  };//initFirebase()
 
   //loads locations to the map and listens for new ones.
   WifiMap.prototype.loadLocations = function() {
@@ -168,9 +194,9 @@
     this.auth.signOut();
   };
 
-  // Triggers when the auth state change for instance when the user signs-in or signs-out.
+  // Triggers when the auth state changes--when the user signs-in or signs-out.
   WifiMap.prototype.onAuthStateChanged = function(user) {
-    if (user) { // User is signed in!
+    if (user) { 
       // Get profile pic and user's name from the Firebase user object.
       var profilePicUrl = user.photoURL;   // Get profile pic.
       var userName = user.displayName;        // Get user's name.
@@ -190,8 +216,8 @@
       // We load currently existing messages.
       this.loadMessages();
 
-        //we load currently existing locations
-        this.loadLocations();
+      //we load currently existing locations
+      this.loadLocations();
         
       // We save the Firebase Messaging Device token and enable notifications.
       this.saveMessagingDeviceToken();
@@ -214,7 +240,7 @@
     }
     // Display a message to the user using a Toast.
     var data = {
-      message: 'You must sign-in first',
+      message: 'You must sign-in to save locations',
       timeout: 2000
     };
     this.signInSnackbar.MaterialSnackbar.showSnackbar(data);
@@ -266,7 +292,7 @@
   WifiMap.LOADING_IMAGE_URL = 'https://www.google.com/images/spin-32.gif';
 
   // Enables or disables the submit button depending on the values of the 
-  // input fields.
+  // input fields.  Currently locked on 'true' 
   
   WifiMap.prototype.toggleButton = function() {
     if (true) {
@@ -290,88 +316,52 @@
           'displayed there.');
     }
   };
-//
-//  window.onload = function() {
-//    window.wifiMap = new WifiMap();
-//    initMap(); 
-//      
-//  };
 
 
-
-
-function pullLatLngs() { 
-   var rootRef = firebase.database().ref().child("messages");
-   var str = "";
-    var lat = "";
-    var lng = "";
-    var formattedLatLng = "";
-   rootRef.on("child_added", snap => {
-     var latlng = snap.child("latlng").val();
-     var streetAddress = snap.child("streetAddress").val();   
-     lat = latlng.substring(latlng.indexOf('(', 0) + 1, latlng.indexOf(',', 0));
-     lng = latlng.substring(latlng.indexOf(',', 0) + 1, latlng.indexOf(')', 0));
-     formattedLatLng = "{" + lat + "," + lng + "}";
-     markerArray.push({location: formattedLatLng, address: streetAddress});
-       console.log("child added: " + formattedLatLng);
-     // The following group uses the location array to create an array of markers on initialize.
-      //createMarker(map, markerArray.pop().streetAddress);
-       codeAddress(streetAddress);
-   });//on child_added
-    //initMap();
-};
-
-
-
-
-
-
-    function createMarker(map, location) {
-        //alert("createMarker function called");
-        console.log("Adding marker to this location: " + codeAddress(location));
-        var marker = new google.maps.Marker({
-           map: map,
-            position: codeAddress(location),
-            title: "title",
-            animation: google.maps.Animation.DROP
+    //using a database reference object, create a map marker on child_added event to the "messages" root 
+    function pullLatLngs() { 
+       var rootRef = firebase.database().ref().child("messages");
+       var str = "";
+       var lat = "";
+       var lng = "";
+       var formattedLatLng = "";
+       rootRef.on("child_added", dataSnapshot => {
+         var latlng = dataSnapshot.child("latlng").val();
+         var streetAddress = dataSnapshot.child("streetAddress").val();   
+         lat = latlng.substring(latlng.indexOf('(', 0) + 1, latlng.indexOf(',', 0));
+         lng = latlng.substring(latlng.indexOf(',', 0) + 1, latlng.indexOf(')', 0));
+         formattedLatLng = "{" + lat + "," + lng + "}";
+         markerArray.push({location: formattedLatLng, address: streetAddress});
+         codeAddress(streetAddress);
+       });//on child_added
+    };
+      //create new google maps marker object at position    
+      function makeMarker(position) {          
+          var marker = new google.maps.Marker({
+            map: map,
+            title: "password",  
+            position: position,
+            animation: google.maps.Animation.DROP  
         });
-        markers.push(marker);
-    };//createMarker
+      };//makeMarker()
 
-      // This function takes in a COLOR, and then creates a new marker
-      // icon of that color. The icon will be 21 px wide by 34 high, have an origin
-      // of 0, 0 and be anchored at 10, 34).
-      function makeMarkerIcon(markerColor) {
-        var markerImage = new google.maps.MarkerImage(
-          'http://chart.googleapis.com/chart?chst=d_map_spin&chld=1.15|0|'+ markerColor +
-          '|40|_|%E2%80%A2',
-          new google.maps.Size(21, 34),
-          new google.maps.Point(0, 0),
-          new google.maps.Point(10, 34),
-          new google.maps.Size(21,34));
-        return markerImage;
-      };
-//function that geocodes an address to a latlng value the Google Maps API can use.
+//should be able to use the same geocoding object in this function--"geocoder" instead of declaring a new one
+//geocode an address to a latlng value the Google Maps API can use.
   function codeAddress(address) {
     var geocoder2 = new google.maps.Geocoder();
     geocoder2.geocode( { 'address': address}, function(results, status) {
       if (status == 'OK') {
-        map.setCenter(results[0].geometry.location);
-        var marker = new google.maps.Marker({
-            map: map,
-            position: results[0].geometry.location
-        });
+          makeMarker(results[0].geometry.location);
       } else {
         console.log('Geocode error for the following reason: ' + status);
       }
     });
-  }
+  };//codeAddress()
 
 
-//function to get street address from lat lng coordinates
+//function to get street address from lat lng coordinates and append to #message div
     function reverseGeocodeAddress(geocoder, resultsMap) {
-        window.wifiMap.messageInput.disabled = "false";
-        
+        window.wifiMap.messageInput.disabled = "false";        
         $('#message').empty();
         var address = "";  
         geocoder.geocode({'address': point}, function(results, status) {
@@ -394,21 +384,12 @@ function pullLatLngs() {
       };//reverseGeocodeAddress()  
 
         
-        //global array var for all the markers    
-        var markers = [];     
-        var map;
-        
-        var locations = [];    
-        var point = "";
-        var combined = [];
-    
-        var addressString = "";
-    
+
+    //initialize a new google map
     function initMap() {
-        var erwin = {lat:35.618614, lng:-82.62656199999998};
+        var erwin = {lat:35.617871, lng:-82.63009199999999};
         var asheville = {lat: 35.5946531, lng: -82.55577770000002};
         var image = 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png';
-        
         //constructor creates a new map - only center and zoom required.
           map = new google.maps.Map(document.getElementById('map'), {
               center: erwin,
@@ -423,26 +404,8 @@ function pullLatLngs() {
           icon: image,
           map: map
         });
-        
-        
-            //and populate based on that markers position
-            function populateInfoWindow(marker, infowindow) {
-                //check to make sure the infowindow is not already opened on
-                //this marker
-                if (infowindow.marker != marker) {
-                    infowindow.marker = marker;
-                    infowindow.setContent('<div>' + marker.title + '</div>');
-                    infowindow.open(map, marker);
-                    //make sure the marker property is cleared if the infowindow 
-                    //is closed
-                    infowindow.addListener('closeclick', function() {
-                        infowindow.setMarker = null;
-                    });
-                }
-                
-            }//populateInfoWindow()
             
-            //Add event listener for mouse clicks
+        //Add event listener for mouse clicks, convert to lat lng, and pan map to that point
         google.maps.event.addListener(map, "click", function (event) {
             var latitude = event.latLng.lat();
             var longitude = event.latLng.lng();
@@ -460,15 +423,11 @@ function pullLatLngs() {
                         strokeWeight: 2,
             });
             reverseGeocodeAddress(geocoder, map);
-
             map.panTo(new google.maps.LatLng(latitude,longitude));
-
-        }); //end addListener
-            
+        }); //end addListener            
       }//initMap()
 
-
-
+  //on window load run functions
   window.onload = function() {
     
     window.wifiMap = new WifiMap();
